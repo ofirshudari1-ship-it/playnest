@@ -303,7 +303,7 @@
             כאילו הם משחקים.
         </p>
         <div class="hero-buttons">
-            <a class="btn btn-primary" href="../Playnest-Setup-3.4.1.exe" download>⬇ הורד את Playnest — חינם</a>
+            <a class="btn btn-primary" href="../Playnest-Setup-3.4.4.exe" download>⬇ הורד את Playnest — חינם</a>
             <a class="btn btn-ghost" href="PRODUCT_SPEC.md">📄 איך זה עובד, טכנית</a>
         </div>
         <p class="hero-note">Windows 10/11 · ~76MB · ללא חשבון, ללא הרשמה</p>
@@ -333,6 +333,29 @@
                 <div class="icon">🎭</div>
                 <h3>"כלי גיימינג" שהם בעצם עיצוב בלבד</h3>
                 <p>הרבה אפליקציות דומות מוסיפות "אינטגרציית Discord" או "בקרת RGB" שהן בסך הכול מספרים מזויפים בלי חיבור אמיתי למערכת.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="problem">
+        <div class="section-eyebrow">איך זה עובד</div>
+        <h2 class="section-title">שלושה שלבים, בלי חשבון ובלי ענן</h2>
+        <p class="section-sub">Playnest רץ מקומית על המחשב שלך בלבד. אין שרת, אין סנכרון, אין חשבון להתחבר אליו.</p>
+        <div class="problem-grid">
+            <div class="problem-card">
+                <div class="icon">1️⃣</div>
+                <h3>סריקה</h3>
+                <p>באשף ההתקנה הראשוני Playnest סורק את Steam, Epic, רישום Windows ותיקיות התקנה — ומסנן קבצי setup/uninstall וכפילויות באופן אוטומטי.</p>
+            </div>
+            <div class="problem-card">
+                <div class="icon">2️⃣</div>
+                <h3>ספרייה מאוחדת</h3>
+                <p>כל המשחקים והתוכנות נכנסים לתצוגה אחת עם עטיפות, חיפוש וסינון — ולחיצה מפעילה את המשחק עצמו, לא את קובץ ההתקנה.</p>
+            </div>
+            <div class="problem-card">
+                <div class="icon">3️⃣</div>
+                <h3>נשאר מעודכן לבד</h3>
+                <p>סריקת רקע תקופתית מוסיפה אוטומטית כל דבר חדש שמתקינים, ועדכוני האפליקציה עצמה יורדים ברקע דרך GitHub Releases — בלי לחזור לאתר הזה.</p>
             </div>
         </div>
     </section>
@@ -428,10 +451,44 @@
         </div>
     </section>
 
+    <section id="auto-update" class="honesty">
+        <div class="section-eyebrow">עדכונים אוטומטיים</div>
+        <h2 class="section-title">מתעדכן לבד — לא צריך לחזור לכאן</h2>
+        <p class="section-sub">מגרסה 3.4.4 ואילך Playnest בודק אוטומטית ברקע אם יש גרסה חדשה ב-GitHub Releases של הפרויקט (electron-updater, אותה טכנולוגיית עדכונים שמריצות רוב אפליקציות ה-Electron הרציניות).</p>
+        <div class="honesty-wrap">
+            <div class="honesty-row">
+                <div class="kept">בדיקה ברקע</div>
+                <div class="why">כמה שניות אחרי הפתיחה Playnest בודק בשקט אם יצאה גרסה חדשה — בלי לעכב את האפליקציה ובלי לבקש כלום מהמשתמש.</div>
+            </div>
+            <div class="honesty-row">
+                <div class="kept">הורדה אוטומטית + אישור להתקנה</div>
+                <div class="why">אם יש עדכון, הוא יורד ברקע, ומופיעה הודעה קצרה עם אפשרות "התקן עכשיו" או "מאוחר יותר" — בלי לאלץ הפעלה מחדש.</div>
+            </div>
+            <div class="honesty-row">
+                <div class="kept">אין אינטרנט? לא קרה כלום</div>
+                <div class="why">אם אין חיבור או ש-GitHub לא זמין, הבדיקה נכשלת בשקט ונרשמת ליומן שגיאות מקומי — Playnest ממשיך לעבוד כרגיל.</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="version-history" class="stats">
+        <div class="section-eyebrow">היסטוריית גרסאות</div>
+        <h2 class="section-title">מה השתנה, גרסה אחר גרסה</h2>
+        <p class="section-sub" style="max-width: 640px; margin: 0 auto 20px;">
+            v3.4.4 — עדכונים אוטומטיים אמיתיים דרך electron-updater ·
+            v3.4.3 — עמודי welcome/finish אמיתיים באשף ההתקנה + כפתור בצבע המותג ·
+            v3.4.2 — אשף התקנה עם גרפיקה ממותגת ·
+            v3.4.1 ומטה — יציבות, דה-דופ ותיקוני סריקה.
+        </p>
+        <p class="section-sub" style="max-width: 640px; margin: 0 auto;">
+            <a href="../CHANGELOG.md">היסטוריה מלאה ב-CHANGELOG.md ↗</a>
+        </p>
+    </section>
+
     <section id="download" class="cta-section">
         <h2>הספרייה שלך, מסודרת סוף סוף</h2>
         <p>חינם, מקומי, בלי חשבון. תוריד, תריץ את אשף ההתקנה, והספרייה שלך תופיע תוך שניות.</p>
-        <a class="btn btn-primary" style="padding: 16px 40px; font-size: 17px;" href="../Playnest-Setup-3.4.1.exe" download>⬇ הורד את Playnest v3.4.1</a>
+        <a class="btn btn-primary" style="padding: 16px 40px; font-size: 17px;" href="../Playnest-Setup-3.4.4.exe" download>⬇ הורד את Playnest v3.4.4</a>
     </section>
 
     <footer>
