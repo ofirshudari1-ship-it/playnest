@@ -1,0 +1,33 @@
+PLAYNEST SOFTWARE LICENSE AGREEMENT
+
+Copyright (c) 2026 Playnest Software. All rights reserved.
+
+By installing Playnest, you agree to the following terms:
+
+1. GRANT OF LICENSE
+   Playnest Software grants you a personal, non-exclusive, non-transferable
+   license to install and use this software on devices you own or control.
+
+2. WHAT PLAYNEST DOES
+   Playnest scans locations you select on this computer (installed
+   application records and, optionally, chosen drives) to build a local
+   library of installed games and software. Playnest contacts
+   SteamGridDB.com to download cover artwork for items it finds, using a
+   built-in key (you may replace it with your own in Settings). No other
+   data is collected, uploaded, or shared.
+
+3. NO WARRANTY
+   This software is provided "AS IS", without warranty of any kind, express
+   or implied, including but not limited to warranties of merchantability
+   or fitness for a particular purpose.
+
+4. LIMITATION OF LIABILITY
+   In no event shall Playnest Software be liable for any damages arising
+   from the use of this software.
+
+5. UNINSTALLATION
+   You may uninstall Playnest at any time via Windows Settings > Apps, or
+   using the uninstaller placed in the installation folder. Uninstalling
+   Playnest does not uninstall the games or applications it catalogued.
+
+Click "I Agree" to continue installing Playnest, or "Cancel" to exit setup.

@@ -1,0 +1,97 @@
+{
+  "genreKeywords": {
+    "Shooter": [
+      "counter-strike", "valorant", "call of duty", "battlefield", "overwatch", "apex legends", "doom",
+      "half-life", "rainbow six", "destiny", "titanfall", "borderlands", "far cry", "escape from tarkov",
+      "pubg", "warframe", "splitgate", "insurgency", "squad", "hell let loose", "battlebit", "helldivers",
+      "gears of war", "halo", "metro exodus", "metro 2033", "metro last light", "sniper elite", "crossfire",
+      "team fortress", "left 4 dead", "payday", "warface", "the finals", "xdefiant", "ready or not",
+      "six days in fallujah", "robocop"
+    ],
+    "RPG": [
+      "witcher", "skyrim", "fallout", "dark souls", "elden ring", "final fantasy", "mass effect",
+      "dragon age", "cyberpunk", "diablo", "path of exile", "baldur's gate", "divinity", "persona",
+      "monster hunter", "starfield", "atlas fallen", "outer worlds", "kingdom come", "pillars of eternity",
+      "nioh", "sekiro", "bloodborne", "demon's souls", "wo long", "lies of p", "dragon's dogma",
+      "octopath traveler", "tales of", "ni no kuni", "genshin impact", "black myth", "avowed",
+      "the last of us", "wasteland", "vampire: the masquerade", "pathfinder", "wolcen", "grim dawn",
+      "torchlight", "remnant", "code vein", "immortals of aveum"
+    ],
+    "MOBA / Strategy": [
+      "league of legends", "dota 2", "starcraft", "age of empires", "civilization", "total war",
+      "command & conquer", "heroes of the storm", "company of heroes", "hearthstone", "xcom",
+      "into the breach", "frostpunk", "anno", "crusader kings", "hearts of iron", "stellaris",
+      "warhammer", "homeworld", "supreme commander", "wargame", "endless space", "old world",
+      "against the storm", "manor lords"
+    ],
+    "Sports / Racing": [
+      "fifa", "fc 24", "fc 25", "nba 2k", "forza", "gran turismo", "f1 20", "f1 24", "rocket league",
+      "need for speed", "madden", "wrc", "dirt rally", "assetto corsa", "the crew", "trackmania",
+      "riders republic", "nhl 2", "mlb the show", "pga tour", "efootball", "beamng"
+    ],
+    "Sandbox / Survival": [
+      "minecraft", "terraria", "rust", "valheim", "subnautica", "the forest", "7 days to die",
+      "ark: survival evolved", "ark survival ascended", "ark survival evolved",
+      "raft", "grounded", "keepup survival", "sons of the forest", "green hell", "conan exiles",
+      "dayz", "project zomboid", "state of decay", "icarus", "enshrouded", "palworld", "abiotic factor",
+      "no man's sky", "core keeper", "vintage story"
+    ],
+    "Simulation": [
+      "the sims", "cities: skylines", "flight simulator", "farming simulator", "euro truck simulator",
+      "planet coaster", "house flipper", "anno 117", "planet zoo", "two point", "surgeon simulator",
+      "power wash simulator", "house flipper", "tavern simulator", "supermarket simulator",
+      "car mechanic simulator", "train sim world", "american truck simulator", "prison architect",
+      "rimworld", "kerbal space program", "satisfactory", "factorio", "dyson sphere program",
+      "oxygen not included"
+    ],
+    "Action / Adventure": [
+      "grand theft auto", "red dead redemption", "assassin's creed", "god of war", "horizon",
+      "tomb raider", "uncharted", "spider-man", "hogwarts legacy", "just cause", "watch dogs",
+      "days gone", "ghost of tsushima", "death stranding", "star wars jedi", "avatar frontiers",
+      "mafia", "sniper ghost warrior", "shadow of the tomb raider", "middle-earth: shadow",
+      "dying light", "dead island", "biomutant", "atomic heart", "wanted: dead", "rise of the ronin",
+      "darksiders", "crimson desert", "pragmata", "sleeping dogs"
+    ],
+    "Indie / Platformer": [
+      "hollow knight", "celeste", "hades", "stardew valley", "among us", "fall guys", "cuphead",
+      "ori and the", "dead cells", "risk of rain", "slay the spire", "vampire survivors", "inscryption",
+      "cult of the lamb", "spelunky", "shovel knight", "katana zero", "hyper light drifter",
+      "a hat in time", "little nightmares", "limbo", "inside", "unravel"
+    ],
+    "Horror": [
+      "resident evil", "silent hill", "outlast", "phasmophobia", "dead by daylight", "amnesia",
+      "dead space", "alien: isolation", "the evil within", "layers of fear", "visage",
+      "five nights at freddy's", "the quarry", "until dawn", "song of horror", "lethal company",
+      "content warning", "callisto protocol"
+    ]
+  },
+  "genreTokens": {
+    "Simulation": ["simulator", "simulation", "tycoon", "farming", " builder", "building game"],
+    "Shooter": ["royale", "warfare", "gunner", "shooter", " fps", "tactical shooter"],
+    "Sandbox / Survival": ["survival game", "crafting", "zombie survival"],
+    "MOBA / Strategy": ["real-time strategy", " rts", "tactics", "grand strategy", "4x strategy"],
+    "RPG": [" rpg", "role-playing", "role playing", "action rpg", "jrpg", "mmorpg"],
+    "Sports / Racing": ["racing game", "motorsport", "karting"],
+    "Indie / Platformer": ["platformer", "roguelike", "rogue-like", "metroidvania", "puzzle platformer"],
+    "Horror": ["survival horror", "psychological horror"]
+  },
+  "crackGroupMarkers": [
+    "skidrow", "codex", "cpy", "plaza", "reloaded", "hoodlum", "tenoke", "fairlight", "empress",
+    "goldberg", "fitgirl", "dodi", "elamigos", "razor1911", "ali213", "3dm", "flt",
+    "conspiracy", "prophet", "tinyiso", "simplex", "vitality", "hi2u", "kaos repack",
+    "online-fix", "onlinefix", "repack"
+  ],
+  "gameInstallMarkers": [
+    "_CommonRedist", "steam_settings", "goldberg_ssq.json", "steam_api64.dll", "steam_api.dll",
+    "steam_emu.ini"
+  ],
+  "systemPublisherHints": ["microsoft corporation", "intel corporation", "nvidia corporation", "advanced micro devices", "realtek", "dell", "hewlett-packard", "lenovo"],
+  "systemNameHints": ["redistributable", "runtime", "sdk", "driver", "update for", "security update", "visual c++", "directx", ".net framework", "hotfix", "webview2", "language pack"],
+  "knownContainerFolders": [
+    "common files", "internet explorer", "windows defender", "windows defender advanced threat protection",
+    "windows mail", "windows media player", "windows photo viewer", "windows sidebar", "windows nt",
+    "windowspowershell", "windowsapps", "modifiablewindowsapps", "reference assemblies", "msbuild",
+    "wsl", "installshield installation information", "uninstall information", "temp", "easyanticheat_eos",
+    "dotnet", "ene", "logidownloadassistant", "logioptionsplus"
+  ]
+}
