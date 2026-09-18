@@ -1,0 +1,113 @@
+{
+  "name": "playnest",
+  "productName": "Playnest",
+  "version": "3.4.4",
+  "description": "Your entire game and software library, beautifully organized. The ultimate gaming command center.",
+  "author": {
+    "name": "Playnest Software",
+    "email": "support@playnest.app"
+  },
+  "main": "electron/main.cjs",
+  "homepage": "./",
+  "private": true,
+  "scripts": {
+    "dev:vite": "vite",
+    "dev:electron": "cross-env NODE_ENV=development electron .",
+    "build": "vite build",
+    "icons": "node build/make-icons.cjs && node build/make-installer-graphics.cjs",
+    "version:sync": "node build/sync-version.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "dist": "npm run version:sync && npm run build && electron-builder && node build/finalize-installer.cjs",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.9",
+    "fast-glob": "^3.3.2",
+    "fuse.js": "^7.0.0",
+    "systeminformation": "^5.22.11"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.3.1",
+    "cross-env": "^7.0.3",
+    "electron": "^31.3.0",
+    "electron-builder": "^24.13.3",
+    "png-to-ico": "^2.1.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.33.5",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.1"
+  },
+  "build": {
+    "appId": "app.playnest.desktop",
+    "productName": "Playnest",
+    "copyright": "Copyright (c) 2026 Playnest Software",
+    "directories": {
+      "output": "build/release",
+      "buildResources": "build"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "ofirshudari1-ship-it",
+      "repo": "playnest"
+    },
+    "files": [
+      "build/dist/**/*",
+      "electron/**/*",
+      "locales/**/*",
+      "version.json",
+      "CHANGELOG.md",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "electron/data",
+        "to": "data"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "publisherName": "Playnest Software"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Playnest",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeader": "assets/installerHeader.bmp",
+      "installerSidebar": "assets/installerSidebar.bmp",
+      "uninstallerSidebar": "assets/installerSidebar.bmp",
+      "license": "build/LICENSE.txt",
+      "include": "build/installer.nsh",
+      "artifactName": "Playnest-Setup-${version}.${ext}",
+      "displayLanguageSelector": true,
+      "installerLanguages": [
+        "en_US",
+        "he_IL"
+      ],
+      "language": "1033"
+    }
+  },
+  "allowScripts": {
+    "electron@31.7.7": true,
+    "esbuild@0.21.5": true,
+    "sharp@0.33.5": true
+  }
+}

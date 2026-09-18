@@ -1,0 +1,46 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8f72ff"/>
+      <stop offset="55%" stop-color="#7c5cff"/>
+      <stop offset="100%" stop-color="#22d3c5"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="play" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#eef0ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="38%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+    <filter id="playShadow" x="-60%" y="-60%" width="220%" height="220%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#3a2a80" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Outer glow ring, gives the badge depth against any background -->
+  <rect x="8" y="8" width="1008" height="1008" rx="234" fill="url(#bg)" opacity="0.28"/>
+
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="url(#bg)" filter="url(#soft)"/>
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="url(#glow)"/>
+  <rect x="32" y="32" width="960" height="480" rx="220" fill="url(#sheen)"/>
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="3"/>
+
+  <!-- Nest: woven arcs cradling the play mark -->
+  <g stroke="#ffffff" stroke-width="24" stroke-linecap="round" fill="none" opacity="0.95">
+    <path d="M 186 668 Q 512 842 838 668"/>
+    <path d="M 226 606 Q 512 758 798 606" opacity="0.75"/>
+    <path d="M 268 550 Q 512 680 756 550" opacity="0.52"/>
+  </g>
+
+  <!-- Play mark resting in the nest, rounded corners + gradient fill for depth -->
+  <path d="M 424 336 Q 424 322 436 329 L 646 452 Q 658 459 646 466 L 436 589 Q 424 596 424 582 Z"
+        fill="url(#play)" filter="url(#playShadow)"/>
+</svg>
