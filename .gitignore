@@ -1,0 +1,10 @@
+node_modules/
+build/dist/
+build/release/
+*.exe
+*.blockmap
+*.zip
+*.log
+dist/
+.DS_Store
+Thumbs.db
