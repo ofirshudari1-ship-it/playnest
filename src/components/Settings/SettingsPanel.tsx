@@ -332,6 +332,36 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
               <span className="slider" />
             </label>
           </div>
+
+          <div className={`toggle-row ${settings.minimizeToTray ? '' : 'toggle-row-disabled'}`} style={{ padding: 0, marginTop: 12 }}>
+            <div>
+              <div>{t('settings.trayClickTitle')}</div>
+              <div className="desc">{t('settings.trayClickDesc')}</div>
+            </div>
+            <select
+              value={settings.trayClickAction}
+              disabled={!settings.minimizeToTray}
+              onChange={(e) => patchSettings({ trayClickAction: e.target.value as Settings['trayClickAction'] })}
+            >
+              <option value="single">{t('settings.trayClickSingle')}</option>
+              <option value="double">{t('settings.trayClickDouble')}</option>
+            </select>
+          </div>
+
+          <div className="toggle-row" style={{ padding: 0, marginTop: 12 }}>
+            <div>
+              <div>{t('settings.backgroundNotifTitle')}</div>
+              <div className="desc">{t('settings.backgroundNotifDesc')}</div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.backgroundActivityNotifications}
+                onChange={(e) => patchSettings({ backgroundActivityNotifications: e.target.checked })}
+              />
+              <span className="slider" />
+            </label>
+          </div>
         </div>
 
         <div className="field">

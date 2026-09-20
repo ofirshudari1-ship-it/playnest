@@ -51,14 +51,16 @@ const DEFAULT_SETTINGS: Settings = {
   favorites: [],
   hiddenItemIds: [],
   collections: {},
-  minimizeToTray: false,
+  minimizeToTray: true,
   tags: {},
   setupWizardSeen: false,
   gridDensity: 'comfortable',
   quickLaunchHotkeyEnabled: true,
   autoRescanHours: 0,
   launchOnStartup: false,
-  startMinimized: false
+  startMinimized: false,
+  trayClickAction: 'single',
+  backgroundActivityNotifications: false
 };
 
 // Splash stays up at least this long so a fast startup never flickers by —

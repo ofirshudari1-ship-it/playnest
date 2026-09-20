@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, screen, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, screen, globalShortcut, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec, spawn, execSync } = require('child_process');
@@ -50,6 +50,35 @@ function initAutoUpdater() {
   });
 
   autoUpdater.on('update-downloaded', (info) => {
+    // A dialog attached to a hidden parent window (minimized to tray) has no
+    // taskbar entry and is easy to miss entirely — use a tray notification
+    // instead whenever the window isn't currently visible. This always fires
+    // regardless of the opt-in backgroundActivityNotifications setting below,
+    // since a missed update prompt isn't "background noise", it's the only
+    // way the user finds out a restart-to-install is available right now.
+    const windowHidden = !mainWindow || mainWindow.isDestroyed() || !mainWindow.isVisible();
+    if (windowHidden) {
+      try {
+        if (Notification.isSupported()) {
+          const notification = new Notification({
+            title: 'Playnest Update Ready',
+            body: `Playnest ${info.version} has been downloaded. Click to restart and install now.`,
+            icon: path.join(__dirname, '..', 'assets', 'icon.png')
+          });
+          notification.on('click', () => {
+            isQuitting = true;
+            autoUpdater.quitAndInstall();
+          });
+          notification.show();
+        }
+      } catch (err) {
+        logCrash('autoUpdater notification', err);
+      }
+      // Ignoring the notification is fine either way — autoInstallOnAppQuit
+      // still installs it automatically the next time Playnest actually quits.
+      return;
+    }
+
     dialog
       .showMessageBox(mainWindow, {
         type: 'info',
@@ -277,12 +306,86 @@ function buildTrayMenu() {
         ]
       : []),
     { type: 'separator' },
+    // The one unambiguous full-exit path in the whole app: isQuitting must be
+    // set before app.quit() so mainWindow's 'close' handler (which otherwise
+    // intercepts every close while minimizeToTray is on) lets this one through
+    // instead of just hiding the window again. See mainWindow.on('close', ...).
     { label: 'Quit Playnest', click: () => { isQuitting = true; app.quit(); } }
   ]);
 }
 
+// Windows' own taskbar jump-list (right-click the pinned/taskbar icon) — a
+// second, native quick-launch surface alongside the tray menu above. Rebuilt
+// wherever the tray menu is (favorites change, library changes), so it never
+// drifts from what's actually in the tray. No user-facing toggle: it's pure
+// upside (nothing shows unless there are favorites with a real .exe on disk)
+// and matches how every other Windows game launcher behaves.
+function refreshJumpList() {
+  if (isDev) return; // no installed exe to register jump-list tasks against
+  try {
+    const settings = store.getSettings();
+    const favIds = new Set(settings.favorites || []);
+    const favorites = store
+      .get('library')
+      .filter((i) => favIds.has(i.id) && i.executable && fs.existsSync(i.executable))
+      .slice(0, 5);
+
+    app.setJumpList([
+      {
+        type: 'custom',
+        name: 'Favorites',
+        items: favorites.map((item) => ({
+          type: 'task',
+          title: item.name,
+          program: process.execPath,
+          // Forwarded through the single-instance lock to launchFromArgv() in
+          // the already-running instance (or handled directly if Playnest
+          // wasn't running yet) — never launched by the jump-list entry itself.
+          args: `--launch=${item.id}`,
+          iconPath: item.executable,
+          iconIndex: 0,
+          description: `Launch ${item.name}`
+        }))
+      },
+      {
+        type: 'tasks',
+        items: [{ type: 'task', title: 'Open Playnest', program: process.execPath, args: '', iconPath: process.execPath, iconIndex: 0, description: 'Open Playnest' }]
+      }
+    ]);
+  } catch (err) {
+    logCrash('setJumpList', err);
+  }
+}
+
 function refreshTrayMenu() {
   if (tray) tray.setContextMenu(buildTrayMenu());
+  refreshJumpList();
+}
+
+// A --launch=<id> arg comes only from a jump-list task above (see
+// refreshJumpList) — arrives either on a fresh launch (Playnest wasn't
+// running) or via the 'second-instance' event when it was.
+function launchFromArgv(argv) {
+  const arg = argv.find((a) => a.startsWith('--launch='));
+  if (!arg) return;
+  const id = arg.slice('--launch='.length);
+  if (id) performLaunch(id);
+}
+
+// Single click vs. double click to restore from the tray — 'single' (default)
+// matches Discord/Spotify-style tray apps; 'double' suits anyone who finds a
+// single click too easy to trigger by accident. Re-applied whenever the
+// setting changes (see settings:set) rather than only at tray creation.
+function applyTrayClickBehavior() {
+  if (!tray) return;
+  tray.removeAllListeners('click');
+  tray.removeAllListeners('double-click');
+  const restore = () => { mainWindow?.show(); mainWindow?.focus(); };
+  if (store.getSettings().trayClickAction === 'double') {
+    tray.on('double-click', restore);
+  } else {
+    tray.on('click', restore);
+  }
 }
 
 function createTray() {
@@ -290,14 +393,33 @@ function createTray() {
   tray = new Tray(icon);
   tray.setToolTip('Playnest');
   tray.setContextMenu(buildTrayMenu());
-  tray.on('click', () => { mainWindow?.show(); mainWindow?.focus(); });
+  applyTrayClickBehavior();
+  refreshJumpList();
+}
+
+// Opt-in system notification for low-priority background activity (currently:
+// an auto-rescan finding new items). Suppressed while the window is already
+// visible and focused — the user is looking at Playnest, they don't need a
+// toast to tell them something they're about to see refresh in the grid.
+function notifyBackgroundActivity(title, body) {
+  try {
+    if (!store.getSettings().backgroundActivityNotifications) return;
+    if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible() && mainWindow.isFocused()) return;
+    if (!Notification.isSupported()) return;
+    new Notification({ title, body, icon: path.join(__dirname, '..', 'assets', 'icon.png') }).show();
+  } catch (err) {
+    logCrash('notifyBackgroundActivity', err);
+  }
 }
 
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 if (!gotSingleInstanceLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (event, argv) => {
+    // A jump-list "Favorites" click carries --launch=<id> and should launch
+    // that game rather than (or in addition to) just refocusing the window.
+    launchFromArgv(argv);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       if (!mainWindow.isVisible()) mainWindow.show();
@@ -308,6 +430,7 @@ if (!gotSingleInstanceLock) {
   app.whenReady().then(() => {
     createWindow();
     createTray();
+    launchFromArgv(process.argv); // covers a --launch=<id> jump-list click when Playnest wasn't already running
     applyQuickLaunchHotkey(store.getSettings().quickLaunchHotkeyEnabled);
     // Re-assert the login-item registration on every launch — self-heals if
     // Windows (or the user, via Task Manager's Startup tab) dropped it, and
@@ -433,10 +556,16 @@ async function runAutoRescanIfDue() {
 
   autoRescanInFlight = true;
   try {
+    const previousCount = store.get('library').length;
     const options = store.get('lastScanOptions') || { drives: [], deepScan: false };
     const rawItems = await runFullScan(options, () => {});
-    mergeScanResults(rawItems);
+    const merged = mergeScanResults(rawItems);
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('library:updated');
+
+    const added = merged.length - previousCount;
+    if (added > 0) {
+      notifyBackgroundActivity('Playnest', `Found ${added} new item${added === 1 ? '' : 's'} in your library.`);
+    }
   } catch (err) {
     logCrash('AUTO-RESCAN', err);
   } finally {
@@ -609,6 +738,7 @@ ipcMain.handle('settings:set', (event, newSettings) => {
   if ('launchOnStartup' in newSettings || 'startMinimized' in newSettings) {
     applyLaunchOnStartup(updated.launchOnStartup, updated.startMinimized);
   }
+  if ('trayClickAction' in newSettings) applyTrayClickBehavior();
   return updated;
 });
 

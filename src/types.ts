@@ -79,6 +79,15 @@ export interface Settings {
   // Only takes effect when launchOnStartup is on: open straight to the tray
   // on that automatic launch instead of showing a window.
   startMinimized: boolean;
+  // Whether a single click or a double click on the tray icon restores the
+  // window — see electron/main.cjs applyTrayClickBehavior(). Defaults to
+  // 'single' (matches Discord/Spotify-style tray apps).
+  trayClickAction: 'single' | 'double';
+  // Opt-in system notification when a background auto-rescan finds new items
+  // while the window is hidden (electron/main.cjs runAutoRescanIfDue). Off by
+  // default — this is separate from the update-ready notification, which
+  // always fires when the window is hidden regardless of this setting.
+  backgroundActivityNotifications: boolean;
 }
 
 export interface HardwareProfile {

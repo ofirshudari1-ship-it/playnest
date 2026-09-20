@@ -10,8 +10,23 @@ const DEFAULT_SETTINGS = {
   favorites: [],
   hiddenItemIds: [],
   collections: {},
-  minimizeToTray: false,
+  // Default changed to true (was false) so closing the window keeps Playnest
+  // running in the tray out of the box — the Quit Playnest tray menu item is
+  // the unambiguous full-exit path, see main.cjs buildTrayMenu(). Existing
+  // users who already have a saved `false` keep their own choice; this only
+  // changes what a fresh profile starts with.
+  minimizeToTray: true,
   tags: {},
+  // 'single' (default) restores the window on a single tray-icon click, matching
+  // most Windows tray apps (Discord, Spotify). 'double' requires a double-click,
+  // which some users prefer to avoid an accidental single-click reopening the
+  // window. See main.cjs applyTrayClickBehavior().
+  trayClickAction: 'single',
+  // Off by default — an opt-in system notification when a background auto-rescan
+  // (see runAutoRescanIfDue) finds new items while the window isn't visible. An
+  // update-ready notification is shown regardless of this flag when the window is
+  // hidden, since that dialog would otherwise go unseen — see initAutoUpdater.
+  backgroundActivityNotifications: false,
   filterPresets: {},
   lastVersionCheck: null,
   setupWizardSeen: false,
