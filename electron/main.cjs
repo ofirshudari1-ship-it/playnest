@@ -116,8 +116,24 @@ function saveWindowState() {
   }
 }
 
+// True when this launch came from Windows starting Playnest at sign-in with
+// "start minimized" on (see applyLaunchOnStartup below, which is the only
+// place that ever adds --start-minimized to the login item's args) — lets
+// createWindow open straight to the tray instead of flashing a window the
+// user didn't ask to see this second. A manual double-click of the exe or
+// the taskbar shortcut never carries this flag, so it always opens visibly.
+function startedMinimizedAtLogin() {
+  if (process.argv.includes('--start-minimized')) return true;
+  try {
+    return Boolean(app.getLoginItemSettings().wasOpenedAtLogin) && store.getSettings().startMinimized;
+  } catch {
+    return false;
+  }
+}
+
 function createWindow() {
   const initialBounds = getInitialWindowBounds();
+  const openHidden = startedMinimizedAtLogin();
   mainWindow = new BrowserWindow({
     width: initialBounds.width,
     height: initialBounds.height,
@@ -127,6 +143,7 @@ function createWindow() {
     minHeight: 640,
     backgroundColor: '#0b0d12',
     autoHideMenuBar: true,
+    show: !openHidden,
     icon: path.join(__dirname, '..', 'assets', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -228,6 +245,24 @@ function applyQuickLaunchHotkey(enabled) {
   }
 }
 
+// Real Windows startup registration via Electron's own setLoginItemSettings
+// (writes the standard "Run" registry entry Task Manager's Startup tab shows
+// and controls) — not a fake preference. --start-minimized is only ever added
+// here, so startedMinimizedAtLogin() above can trust it as a signal this launch
+// came from Windows, not from the user double-clicking Playnest by hand.
+function applyLaunchOnStartup(enabled, startMinimized) {
+  if (isDev) return; // no installed exe path to register in a dev checkout
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: Boolean(enabled),
+      path: process.execPath,
+      args: startMinimized ? ['--start-minimized'] : []
+    });
+  } catch (err) {
+    logCrash('setLoginItemSettings', err);
+  }
+}
+
 function buildTrayMenu() {
   const settings = store.getSettings();
   const favIds = new Set(settings.favorites || []);
@@ -265,6 +300,7 @@ if (!gotSingleInstanceLock) {
   app.on('second-instance', () => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
       mainWindow.focus();
     }
   });
@@ -273,6 +309,10 @@ if (!gotSingleInstanceLock) {
     createWindow();
     createTray();
     applyQuickLaunchHotkey(store.getSettings().quickLaunchHotkeyEnabled);
+    // Re-assert the login-item registration on every launch — self-heals if
+    // Windows (or the user, via Task Manager's Startup tab) dropped it, and
+    // keeps the --start-minimized arg in sync if that preference changed.
+    { const s = store.getSettings(); applyLaunchOnStartup(s.launchOnStartup, s.startMinimized); }
     // A one-off check right at launch (a user who leaves Playnest closed for
     // days shouldn't have to wait up to another 30 minutes after opening it
     // for an overdue rescan), then the recurring poll for as long as the app
@@ -566,6 +606,9 @@ ipcMain.handle('settings:set', (event, newSettings) => {
   store.set('settings', { ...store.getSettings(), ...newSettings });
   const updated = store.getSettings();
   if ('quickLaunchHotkeyEnabled' in newSettings) applyQuickLaunchHotkey(updated.quickLaunchHotkeyEnabled);
+  if ('launchOnStartup' in newSettings || 'startMinimized' in newSettings) {
+    applyLaunchOnStartup(updated.launchOnStartup, updated.startMinimized);
+  }
   return updated;
 });
 
@@ -1013,10 +1056,11 @@ function isNewerVersion(latest, current) {
   return false;
 }
 
-// NOTE: points at a placeholder repo — swap in the project's real GitHub repo
-// (or a hosted latest.json) before relying on this in production. Until then it
-// safely no-ops (GitHub 404s, hasUpdate stays false) rather than erroring.
-const UPDATE_CHECK_URL = 'https://api.github.com/repos/anthropics/playnest/releases/latest';
+// Playnest's own real GitHub Releases repo — this used to point at a
+// placeholder ("anthropics/playnest", which 404s), so the in-app "update
+// available" banner silently never fired even though electron-updater's
+// separate background auto-update was working fine. Fixed to the actual repo.
+const UPDATE_CHECK_URL = 'https://api.github.com/repos/ofirshudari1-ship-it/playnest/releases/latest';
 
 ipcMain.handle('app:checkForUpdates', async () => {
   try {

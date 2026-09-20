@@ -139,36 +139,43 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
         <div className="stat-tile"><div className="n">{timeAgo(lastScan)}</div><div className="l">{t('settings.statLastScanned')}</div></div>
       </div>
 
-      <div className="field">
-        <label>{t('settings.appearance')}</label>
-        <div className="theme-toggle-row">
-          {(['system', 'dark', 'light'] as Theme[]).map((themeOption) => (
-            <button
-              key={themeOption}
-              className={`theme-option ${settings.theme === themeOption ? 'active' : ''}`}
-              onClick={() => patchSettings({ theme: themeOption })}
-            >
-              {THEME_ICONS[themeOption]} {THEME_LABELS[themeOption]}
-            </button>
-          ))}
+      <div className="settings-section">
+        <h2 className="settings-section-title">{t('settings.sectionGeneral')}</h2>
+
+        <div className="field">
+          <label>{t('settings.appearance')}</label>
+          <div className="theme-toggle-row">
+            {(['system', 'dark', 'light'] as Theme[]).map((themeOption) => (
+              <button
+                key={themeOption}
+                className={`theme-option ${settings.theme === themeOption ? 'active' : ''}`}
+                onClick={() => patchSettings({ theme: themeOption })}
+              >
+                {THEME_ICONS[themeOption]} {THEME_LABELS[themeOption]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="field">
+          <label>{t('settings.languageLabel')}</label>
+          <div className="theme-toggle-row">
+            {(['en', 'he'] as Language[]).map((lang) => (
+              <button
+                key={lang}
+                className={`theme-option ${settings.language === lang ? 'active' : ''}`}
+                onClick={() => patchSettings({ language: lang })}
+              >
+                {lang === 'en' ? 'English' : 'עברית'}
+              </button>
+            ))}
+          </div>
+          <div className="hint">{t('settings.languageHint')}</div>
         </div>
       </div>
 
-      <div className="field">
-        <label>{t('settings.languageLabel')}</label>
-        <div className="theme-toggle-row">
-          {(['en', 'he'] as Language[]).map((lang) => (
-            <button
-              key={lang}
-              className={`theme-option ${settings.language === lang ? 'active' : ''}`}
-              onClick={() => patchSettings({ language: lang })}
-            >
-              {lang === 'en' ? 'English' : 'עברית'}
-            </button>
-          ))}
-        </div>
-        <div className="hint">{t('settings.languageHint')}</div>
-      </div>
+      <div className="settings-section">
+        <h2 className="settings-section-title">{t('settings.sectionLibrary')}</h2>
 
       <div className="field">
         <label>{t('settings.apiKeyLabel')}</label>
@@ -275,72 +282,115 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
         <div className="hint" style={{ marginBottom: 10 }}>{t('settings.libraryHint')}</div>
         <button className="btn btn-secondary" onClick={onRescan}>{t('settings.runWizardAgain')}</button>
       </div>
+      </div>
 
-      <div className="field">
-        <label>{t('settings.trayLabel')}</label>
-        <div className="toggle-row" style={{ padding: 0 }}>
-          <div>
-            <div>{t('settings.trayTitle')}</div>
-            <div className="desc">{t('settings.trayDesc')}</div>
+      <div className="settings-section">
+        <h2 className="settings-section-title">{t('settings.sectionSystem')}</h2>
+
+        <div className="field">
+          <label>{t('settings.startupLabel')}</label>
+          <div className="toggle-row" style={{ padding: 0 }}>
+            <div>
+              <div>{t('settings.launchOnStartupTitle')}</div>
+              <div className="desc">{t('settings.launchOnStartupDesc')}</div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.launchOnStartup}
+                onChange={(e) => patchSettings({ launchOnStartup: e.target.checked })}
+              />
+              <span className="slider" />
+            </label>
           </div>
-          <label className="switch">
-            <input type="checkbox" checked={settings.minimizeToTray} onChange={(e) => patchSettings({ minimizeToTray: e.target.checked })} />
-            <span className="slider" />
-          </label>
-        </div>
-      </div>
-
-      <div className="field">
-        <label>{t('settings.autoRescanLabel')}</label>
-        <div className="hint" style={{ marginBottom: 10 }}>{t('settings.autoRescanHint')}</div>
-        <select
-          value={settings.autoRescanHours}
-          onChange={(e) => patchSettings({ autoRescanHours: Number(e.target.value) })}
-        >
-          <option value={0}>{t('settings.autoRescanOff')}</option>
-          <option value={24}>{t('settings.autoRescanDaily')}</option>
-          <option value={168}>{t('settings.autoRescanWeekly')}</option>
-        </select>
-      </div>
-
-      <div className="field">
-        <label>{t('settings.quickLaunchLabel')}</label>
-        <div className="toggle-row" style={{ padding: 0 }}>
-          <div>
-            <div>{t('settings.quickLaunchTitle')}</div>
-            <div className="desc">{t('settings.quickLaunchDesc')}</div>
+          <div className={`toggle-row ${settings.launchOnStartup ? '' : 'toggle-row-disabled'}`} style={{ padding: 0, marginTop: 12 }}>
+            <div>
+              <div>{t('settings.startMinimizedTitle')}</div>
+              <div className="desc">{t('settings.startMinimizedDesc')}</div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.startMinimized}
+                disabled={!settings.launchOnStartup}
+                onChange={(e) => patchSettings({ startMinimized: e.target.checked })}
+              />
+              <span className="slider" />
+            </label>
           </div>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={settings.quickLaunchHotkeyEnabled}
-              onChange={(e) => patchSettings({ quickLaunchHotkeyEnabled: e.target.checked })}
-            />
-            <span className="slider" />
-          </label>
+        </div>
+
+        <div className="field">
+          <label>{t('settings.trayLabel')}</label>
+          <div className="toggle-row" style={{ padding: 0 }}>
+            <div>
+              <div>{t('settings.trayTitle')}</div>
+              <div className="desc">{t('settings.trayDesc')}</div>
+            </div>
+            <label className="switch">
+              <input type="checkbox" checked={settings.minimizeToTray} onChange={(e) => patchSettings({ minimizeToTray: e.target.checked })} />
+              <span className="slider" />
+            </label>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>{t('settings.autoRescanLabel')}</label>
+          <div className="hint" style={{ marginBottom: 10 }}>{t('settings.autoRescanHint')}</div>
+          <select
+            value={settings.autoRescanHours}
+            onChange={(e) => patchSettings({ autoRescanHours: Number(e.target.value) })}
+          >
+            <option value={0}>{t('settings.autoRescanOff')}</option>
+            <option value={24}>{t('settings.autoRescanDaily')}</option>
+            <option value={168}>{t('settings.autoRescanWeekly')}</option>
+          </select>
+        </div>
+
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>{t('settings.quickLaunchLabel')}</label>
+          <div className="toggle-row" style={{ padding: 0 }}>
+            <div>
+              <div>{t('settings.quickLaunchTitle')}</div>
+              <div className="desc">{t('settings.quickLaunchDesc')}</div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.quickLaunchHotkeyEnabled}
+                onChange={(e) => patchSettings({ quickLaunchHotkeyEnabled: e.target.checked })}
+              />
+              <span className="slider" />
+            </label>
+          </div>
         </div>
       </div>
 
-      <div className="field">
-        <label>{t('settings.smartFeaturesLabel')}</label>
-        <div className="hint">{t('settings.smartFeaturesHint')}</div>
-      </div>
+      <div className="settings-section">
+        <h2 className="settings-section-title">{t('settings.sectionAbout')}</h2>
 
-      <div className="field">
-        <label>{t('settings.privacyLabel')}</label>
-        <div className="hint">{t('settings.privacyHint')}</div>
-      </div>
-
-      <div className="field">
-        <label>{t('settings.aboutLabel')}</label>
-        <div className="hint">
-          {appInfo?.name || 'Playnest'} version {appInfo?.version || '1.0.0'}
-          {appInfo?.buildDate && <> &middot; {t('settings.aboutBuildDate', { date: appInfo.buildDate })}</>}
-          <br />
-          {t('settings.aboutDeveloped')} &middot; support@playnest.app
-          <br />
-          <button className="btn-link" onClick={() => window.playnest.openChangelog()}>{t('settings.aboutChangelog')}</button>
+        <div className="field">
+          <div className="hint">
+            {appInfo?.name || 'Playnest'} version {appInfo?.version || '1.0.0'}
+            {appInfo?.buildDate && <> &middot; {t('settings.aboutBuildDate', { date: appInfo.buildDate })}</>}
+            <br />
+            {t('settings.aboutDeveloped')} &middot; support@playnest.app
+            <br />
+            <button className="btn-link" onClick={() => window.playnest.openChangelog()}>{t('settings.aboutChangelog')}</button>
+          </div>
         </div>
+
+        <details className="settings-details">
+          <summary>{t('settings.privacyDetailsToggle')}</summary>
+          <div className="field">
+            <label>{t('settings.smartFeaturesLabel')}</label>
+            <div className="hint">{t('settings.smartFeaturesHint')}</div>
+          </div>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label>{t('settings.privacyLabel')}</label>
+            <div className="hint">{t('settings.privacyHint')}</div>
+          </div>
+        </details>
       </div>
     </div>
   );

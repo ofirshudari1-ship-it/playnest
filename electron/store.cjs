@@ -21,7 +21,16 @@ const DEFAULT_SETTINGS = {
   // Hours between automatic background rescans; 0 = disabled (default — a
   // scan touches the filesystem/registry and we never do that without the
   // user having opted in at least once). 24 = daily, 168 = weekly.
-  autoRescanHours: 0
+  autoRescanHours: 0,
+  // Real Windows login-item registration (app.setLoginItemSettings), not a
+  // decorative toggle — off by default so installing Playnest never silently
+  // adds itself to Windows startup without the user asking. See main.cjs
+  // applyLaunchOnStartup().
+  launchOnStartup: false,
+  // Only meaningful in combination with launchOnStartup — whether the app
+  // should open straight to the tray (via a --start-minimized launch arg)
+  // instead of popping a window the moment Windows signs the user in.
+  startMinimized: false
 };
 
 const store = new Store({
