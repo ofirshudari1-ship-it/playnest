@@ -73,6 +73,12 @@ export interface Settings {
   // network, no cloud AI). 0 = off (default). See electron/main.cjs
   // runAutoRescanIfDue and SettingsPanel's "Automatic rescan" control.
   autoRescanHours: number;
+  // Real Windows login-item registration (electron/main.cjs
+  // applyLaunchOnStartup, app.setLoginItemSettings) — off by default.
+  launchOnStartup: boolean;
+  // Only takes effect when launchOnStartup is on: open straight to the tray
+  // on that automatic launch instead of showing a window.
+  startMinimized: boolean;
 }
 
 export interface HardwareProfile {

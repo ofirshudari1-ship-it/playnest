@@ -56,7 +56,9 @@ const DEFAULT_SETTINGS: Settings = {
   setupWizardSeen: false,
   gridDensity: 'comfortable',
   quickLaunchHotkeyEnabled: true,
-  autoRescanHours: 0
+  autoRescanHours: 0,
+  launchOnStartup: false,
+  startMinimized: false
 };
 
 // Splash stays up at least this long so a fast startup never flickers by —
