@@ -17,8 +17,55 @@ function effectiveApiKey(settings) {
 
 const isDev = process.env.NODE_ENV === 'development';
 let mainWindow;
+let splash = null;
 let tray = null;
 let isQuitting = false;
+
+// ---- Branded splash screen (STANDARDS.md §19 — mandatory template, modeled
+// 1:1 on HOMEY AI's desktop/splash.html + desktop/main.js createSplash/
+// closeSplash/revealMainWindow). Frameless + transparent so the CSS
+// border-radius in splash.html actually shows rounded corners instead of a
+// square OS-bordered window, and it stays up at least SPLASH_MIN_MS so a
+// fast/cached load never flash-and-disappears.
+const SPLASH_MIN_MS = 800; // never flash-and-gone even on a fast/cached load
+const SPLASH_MAX_MS = 8000; // fail-safe — show the main window regardless if loading hangs
+
+function createSplash() {
+  splash = new BrowserWindow({
+    width: 320,
+    height: 320,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+    backgroundColor: '#00000000',
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true }
+  });
+  splash.loadFile(path.join(__dirname, 'splash.html'));
+  splash.webContents.once('did-finish-load', () => {
+    // Inject the real running version the same way app:info reports it
+    // (app.getVersion(), kept in sync with version.json by build/sync-version.cjs)
+    // rather than duplicating a second source of truth inside splash.html.
+    if (splash && !splash.isDestroyed()) {
+      splash.webContents
+        .executeJavaScript(
+          `(() => { const el = document.getElementById('version'); if (el) el.textContent = ${JSON.stringify('v' + app.getVersion())}; })()`
+        )
+        .catch(() => {
+          /* best-effort — a missing version label is not worth failing startup over */
+        });
+    }
+  });
+  return splash;
+}
+
+function closeSplash() {
+  if (splash && !splash.isDestroyed()) splash.close();
+  splash = null;
+}
 
 // Lightweight crash log so a real user's bug report has something concrete to attach,
 // without keeping a console open.
@@ -163,6 +210,15 @@ function startedMinimizedAtLogin() {
 function createWindow() {
   const initialBounds = getInitialWindowBounds();
   const openHidden = startedMinimizedAtLogin();
+
+  // A launch that starts minimized to the tray (Windows startup, see
+  // startedMinimizedAtLogin above) has no window to reveal yet, so the splash
+  // would just be a flash of branding before the app vanishes to the tray —
+  // skip it entirely in that one case.
+  const showSplash = !openHidden;
+  if (showSplash) createSplash();
+  const splashShownAt = Date.now();
+
   mainWindow = new BrowserWindow({
     width: initialBounds.width,
     height: initialBounds.height,
@@ -172,7 +228,9 @@ function createWindow() {
     minHeight: 640,
     backgroundColor: '#0b0d12',
     autoHideMenuBar: true,
-    show: !openHidden,
+    // Swapped in for the splash the moment it's ready — see revealMainWindow —
+    // so the two windows never overlap or flicker against each other.
+    show: false,
     icon: path.join(__dirname, '..', 'assets', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -237,6 +295,32 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  // Swap the splash for the real window exactly once, whichever of the three
+  // triggers fires first: the page actually finished loading (respecting the
+  // SPLASH_MIN_MS floor so a fast/cached load doesn't flash-and-vanish), the
+  // page failed to load (still has to reveal the window so the user can see
+  // the error state instead of being stuck on branding forever), or the
+  // SPLASH_MAX_MS safety timeout in case loading just hangs.
+  let revealed = false;
+  function revealMainWindow() {
+    if (revealed || !mainWindow || mainWindow.isDestroyed()) return;
+    revealed = true;
+    closeSplash();
+    mainWindow.show();
+  }
+  if (showSplash) {
+    mainWindow.webContents.once('did-finish-load', () => {
+      const elapsed = Date.now() - splashShownAt;
+      setTimeout(revealMainWindow, Math.max(0, SPLASH_MIN_MS - elapsed));
+    });
+    mainWindow.webContents.once('did-fail-load', revealMainWindow);
+    setTimeout(revealMainWindow, SPLASH_MAX_MS);
+  } else {
+    // No splash was shown for a started-minimized-at-login launch — just show
+    // (or not) the window the same way this codepath always has.
+    revealed = true;
+  }
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173');
