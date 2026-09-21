@@ -15,13 +15,13 @@ export default function AnalyticsView({ library }: Props) {
     window.playnest.getAnalytics(library).then(setAnalytics);
   }, [library]);
 
-  if (!analytics) return <div className="settings-panel"><p>{t('analytics.loading')}</p></div>;
+  if (!analytics) return <div className="wide-panel"><p>{t('analytics.loading')}</p></div>;
 
   const playtimeHours = Math.floor(analytics.totalPlaytimeMinutes / 60);
   const playtimeMinutes = analytics.totalPlaytimeMinutes % 60;
 
   return (
-    <div className="settings-panel">
+    <div className="wide-panel">
       <h1>{t('analytics.title')}</h1>
       <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>{t('analytics.subtitle')}</p>
 

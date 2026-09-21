@@ -29,6 +29,9 @@
     "collections": "אוספים",
     "newCollection": "אוסף חדש",
     "tools": "כלים",
+    "performanceHub": "ביצועים",
+    "insightsHub": "תובנות",
+    "systemHub": "מערכת",
     "performanceMode": "מצב ביצועים",
     "streakTracker": "רצף משחק",
     "systemMonitor": "ניטור מערכת",
@@ -190,6 +193,11 @@
     "available": "גרסה חדשה של Playnest זמינה: v{version}",
     "download": "הורדה",
     "dismiss": "לא עכשיו"
+  },
+  "coverArtBanner": {
+    "text": "לחלק מהפריטים חסרה תמונת עטיפה. הוסיפו מפתח SteamGridDB חינמי בהגדרות כדי להציג תמונות אמיתיות במקום אריחי אותיות.",
+    "action": "פתיחת הגדרות",
+    "dismiss": "התעלמות"
   },
   "error": {
     "errorTitle": "משהו השתבש",

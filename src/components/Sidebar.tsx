@@ -3,10 +3,15 @@ import Icon, { type IconName } from './Icon';
 import Logo from './Logo';
 import { useTranslation } from '../i18n';
 
+// The Tools section used to be 8 flat nav items (performance, streak,
+// benchmark, analytics, recommendations, insights, storage, hardware) — one
+// click each, but a long, undifferentiated list in the sidebar. They're now
+// grouped into 3 "hub" views, each a TabbedView folding the same pages in as
+// tabs, so every feature is still reachable, just under fewer top-level
+// clicks. See App.tsx for what each hub renders.
 export type ViewKey =
   | 'all' | 'games' | 'applications' | 'favorites' | 'system' | 'hidden'
-  | 'storage' | 'hardware' | 'analytics' | 'recommendations' | 'insights' | 'settings'
-  | 'performance' | 'streak' | 'benchmark'
+  | 'performance-hub' | 'insights-hub' | 'system-hub' | 'settings'
   | `collection:${string}`;
 
 interface Props {
@@ -60,14 +65,9 @@ export default function Sidebar({ active, onSelect, library, settings, onNewColl
       </button>
 
       <div className="nav-section-label">{t('sidebar.tools')}</div>
-      {item('performance', 'performance', t('sidebar.performanceMode'))}
-      {item('streak', 'streak', t('sidebar.streakTracker'))}
-      {item('benchmark', 'monitor', t('sidebar.systemMonitor'))}
-      {item('analytics', 'analytics', t('sidebar.analytics'))}
-      {item('recommendations', 'recommend', t('sidebar.recommended'))}
-      {item('insights', 'insights', t('sidebar.gameInsights'))}
-      {item('storage', 'storage', t('sidebar.storage'))}
-      {item('hardware', 'hardware', t('sidebar.myHardware'))}
+      {item('performance-hub', 'performance', t('sidebar.performanceHub'))}
+      {item('insights-hub', 'insights', t('sidebar.insightsHub'))}
+      {item('system-hub', 'storage', t('sidebar.systemHub'))}
 
       <div className="nav-divider" />
       {item('settings', 'settings', t('sidebar.settings'))}

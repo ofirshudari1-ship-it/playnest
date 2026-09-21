@@ -22,7 +22,7 @@ export default function StorageView({ library, onOpenItem }: Props) {
   const maxBytes = usage && usage.length > 0 ? usage[0].totalBytes : 1;
 
   return (
-    <div className="settings-panel">
+    <div className="wide-panel">
       <h1>Storage</h1>
       <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>
         Where your library's disk space is going, so you know what to clear out first.

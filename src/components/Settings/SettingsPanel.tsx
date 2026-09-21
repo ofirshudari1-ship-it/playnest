@@ -177,7 +177,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
       <div className="settings-section">
         <h2 className="settings-section-title">{t('settings.sectionLibrary')}</h2>
 
-      <div className="field">
+      <div className="field" id="settings-api-key-field">
         <label>{t('settings.apiKeyLabel')}</label>
         <input
           type="password"
