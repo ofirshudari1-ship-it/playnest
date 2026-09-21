@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react';
+import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import type { LibraryItem } from '../../types';
 import { sourceLabel, formatBytes, isRecentlyAdded } from '../../helpers';
 import { showToast } from '../../toast';
@@ -15,6 +15,10 @@ export default function GameCard({ item, onOpen, selectMode, isSelected }: Props
   const t = useTranslation();
   const initial = item.name.trim().charAt(0).toUpperCase() || '?';
   const showNewBadge = !selectMode && !item.isFavorite && isRecentlyAdded(item.addedAt);
+  // Cover art can come from a slow first-time fetch (Settings → "Fetch cover
+  // art"), so the grid shows a pulsing skeleton in its place instead of a
+  // blank tile until the <img> actually decodes.
+  const [coverLoaded, setCoverLoaded] = useState(false);
 
   async function quickLaunch(e: MouseEvent) {
     e.stopPropagation();
@@ -22,14 +26,44 @@ export default function GameCard({ item, onOpen, selectMode, isSelected }: Props
     if (!result.ok) showToast(result.error || 'Could not launch this item.', 'error');
   }
 
+  // Cards are the primary way to reach anything in the library grid, so they
+  // must be reachable and operable without a mouse: focusable in normal tab
+  // order, and Enter/Space activate them exactly like a click (native <button>
+  // semantics on a non-<button> element per WAI-ARIA button pattern).
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpen(item);
+    }
+  }
+
   return (
-    <div className={`game-card ${selectMode ? 'select-mode' : ''} ${isSelected ? 'selected' : ''}`} onClick={() => onOpen(item)}>
+    <div
+      className={`game-card ${selectMode ? 'select-mode' : ''} ${isSelected ? 'selected' : ''}`}
+      onClick={() => onOpen(item)}
+      onKeyDown={onKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selectMode ? !!isSelected : undefined}
+      aria-label={item.name}
+    >
       {selectMode && <span className="select-check">{isSelected ? '✓' : ''}</span>}
       <span className="source-badge">{sourceLabel(item.source)}</span>
       {!selectMode && item.isFavorite && <span className="fav-badge">⭐</span>}
       {showNewBadge && <span className="new-badge" title={t('card.newTitle')}>{t('card.new')}</span>}
       {item.coverArt ? (
-        <img className="cover" src={item.coverArt} alt={item.name} loading="lazy" />
+        <>
+          {!coverLoaded && <div className="cover skeleton" aria-hidden="true" />}
+          <img
+            className="cover"
+            src={item.coverArt}
+            alt={item.name}
+            loading="lazy"
+            style={coverLoaded ? undefined : { display: 'none' }}
+            onLoad={() => setCoverLoaded(true)}
+            onError={() => setCoverLoaded(true)}
+          />
+        </>
       ) : (
         <div className="cover-placeholder">{initial}</div>
       )}
