@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #7c5cff 0%, #22d3c5 100%);
+    border-radius: 16px;
+    color: #fff;
+    -webkit-app-region: drag;
+  }
+  img { width: 72px; height: 72px; border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
+  .spinner {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.35);
+    border-top-color: #fff;
+    animation: spin 0.8s linear infinite;
+  }
+  .version { position: absolute; bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.75); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="card">
+    <img src="../assets/icon.png" alt="" />
+    <h1>Playnest</h1>
+    <div class="spinner"></div>
+    <span class="version" id="version"></span>
+  </div>
+  <script>
+    // versionText is injected by main.cjs via executeJavaScript after load.
+  </script>
+</body>
+</html>
