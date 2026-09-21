@@ -19,6 +19,7 @@ const isDev = process.env.NODE_ENV === 'development';
 let mainWindow;
 let splash = null;
 let tray = null;
+let widget = null;
 let isQuitting = false;
 
 // ---- Branded splash screen (STANDARDS.md §19 — mandatory template, modeled
@@ -65,6 +66,121 @@ function createSplash() {
 function closeSplash() {
   if (splash && !splash.isDestroyed()) splash.close();
   splash = null;
+}
+
+// ---- Persistent desktop widget (small always-on-top status panel, separate
+// from the main window) — same brand gradient/rounded-corner treatment as the
+// splash screen above, but interactive and long-lived instead of a one-shot
+// loading screen. Shows the real Streak Tracker numbers (computeStreak(),
+// further down) and offers one-click "Open Playnest" / "Launch last-played
+// game" without opening the full app. Position persists the same way
+// windowState does (see getInitialWindowBounds/saveWindowState above), and
+// visibility is a plain settings flag (showDesktopWidget) toggled from
+// Settings > System & Startup or the widget's own close control.
+const WIDGET_WIDTH = 260;
+const WIDGET_HEIGHT = 190;
+
+function getInitialWidgetPosition() {
+  try {
+    const saved = store.get('widgetPosition');
+    if (!saved || typeof saved.x !== 'number' || typeof saved.y !== 'number') return null;
+    const onScreen = screen.getAllDisplays().some((d) => {
+      const a = d.workArea;
+      return saved.x >= a.x && saved.y >= a.y && saved.x < a.x + a.width && saved.y < a.y + a.height;
+    });
+    return onScreen ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function findMostRecentlyPlayedItem() {
+  const library = store.get('library');
+  const played = library.filter((i) => i.lastPlayedAt);
+  if (played.length === 0) return null;
+  played.sort((a, b) => new Date(b.lastPlayedAt).getTime() - new Date(a.lastPlayedAt).getTime());
+  const top = played[0];
+  return { id: top.id, name: top.name };
+}
+
+function getWidgetData() {
+  return { streak: computeStreak(), lastPlayed: findMostRecentlyPlayedItem() };
+}
+
+// Pushed (not polled) whenever something the widget shows actually changes —
+// see touchLastPlayed and mergeScanResults — so the panel reflects live data
+// without the user having to reopen or refresh it.
+function pushWidgetUpdate() {
+  if (widget && !widget.isDestroyed()) widget.webContents.send('widget:data', getWidgetData());
+}
+
+function createWidget() {
+  if (widget && !widget.isDestroyed()) return widget;
+
+  const position = getInitialWidgetPosition();
+  widget = new BrowserWindow({
+    width: WIDGET_WIDTH,
+    height: WIDGET_HEIGHT,
+    x: position?.x,
+    y: position?.y,
+    minWidth: WIDGET_WIDTH,
+    minHeight: WIDGET_HEIGHT,
+    maxWidth: WIDGET_WIDTH,
+    maxHeight: WIDGET_HEIGHT,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    // Never takes keyboard focus, and shown via showInactive() below — the
+    // widget is a glanceable status panel, not another window to alt-tab to,
+    // and shouldn't steal focus from whatever the user is doing.
+    focusable: false,
+    show: false,
+    icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+    backgroundColor: '#00000000',
+    webPreferences: {
+      preload: path.join(__dirname, 'widgetPreload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true
+    }
+  });
+  widget.loadFile(path.join(__dirname, 'widget.html'));
+  widget.once('ready-to-show', () => {
+    if (!widget || widget.isDestroyed()) return;
+    widget.showInactive();
+    pushWidgetUpdate();
+  });
+
+  // Debounced the same way saveWindowState's caller does (scheduleSaveWindowState)
+  // — dragging fires many 'move' events per second, and only the settled
+  // position needs to hit disk.
+  let moveTimer = null;
+  widget.on('move', () => {
+    if (moveTimer) clearTimeout(moveTimer);
+    moveTimer = setTimeout(() => {
+      if (!widget || widget.isDestroyed()) return;
+      const [x, y] = widget.getPosition();
+      store.set('widgetPosition', { x, y });
+    }, 400);
+  });
+  widget.on('closed', () => {
+    if (moveTimer) clearTimeout(moveTimer);
+    widget = null;
+  });
+
+  return widget;
+}
+
+function closeWidget() {
+  if (widget && !widget.isDestroyed()) widget.close();
+  widget = null;
+}
+
+function applyWidgetVisibility(enabled) {
+  if (enabled) createWidget();
+  else closeWidget();
 }
 
 // Lightweight crash log so a real user's bug report has something concrete to attach,
@@ -345,6 +461,21 @@ function bringMainWindowToFront() {
   mainWindow.webContents.send('quickLaunch:trigger');
 }
 
+// Same "restore/show/focus" as bringMainWindowToFront above, minus the
+// search-bar jump — used by the widget's "Open Playnest" button, which just
+// wants the window in front, not the quick-launch hotkey's search behavior.
+// Also covers the case where mainWindow was fully closed (e.g. quit from an
+// earlier session state) rather than just hidden to tray.
+function bringMainWindowToFrontQuiet() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+    return;
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  if (!mainWindow.isVisible()) mainWindow.show();
+  mainWindow.focus();
+}
+
 // Registration is best-effort: globalShortcut.register() returns false (never
 // throws) when another already-running application owns the same combination,
 // so this silently no-ops rather than crashing the app over an OS-level conflict.
@@ -514,6 +645,10 @@ if (!gotSingleInstanceLock) {
   app.whenReady().then(() => {
     createWindow();
     createTray();
+    // Independent of mainWindow's own visibility (even a started-minimized-at-login
+    // launch gets the widget) — its whole point is glanceable status without opening
+    // the full app.
+    if (store.getSettings().showDesktopWidget) createWidget();
     launchFromArgv(process.argv); // covers a --launch=<id> jump-list click when Playnest wasn't already running
     applyQuickLaunchHotkey(store.getSettings().quickLaunchHotkeyEnabled);
     // Re-assert the login-item registration on every launch — self-heals if
@@ -599,6 +734,7 @@ function mergeScanResults(rawItems) {
   store.set('library', withTimestamps);
   store.set('lastScan', now);
   refreshTrayMenu();
+  pushWidgetUpdate(); // a rescan can change which item is "last played" (e.g. after a backup import)
   return withTimestamps;
 }
 
@@ -823,6 +959,30 @@ ipcMain.handle('settings:set', (event, newSettings) => {
     applyLaunchOnStartup(updated.launchOnStartup, updated.startMinimized);
   }
   if ('trayClickAction' in newSettings) applyTrayClickBehavior();
+  if ('showDesktopWidget' in newSettings) applyWidgetVisibility(updated.showDesktopWidget);
+  return updated;
+});
+
+// ---- Desktop widget ----
+ipcMain.handle('widget:getData', () => getWidgetData());
+ipcMain.handle('widget:openMain', () => {
+  bringMainWindowToFrontQuiet();
+  return { ok: true };
+});
+ipcMain.handle('widget:launchLastPlayed', () => {
+  const item = findMostRecentlyPlayedItem();
+  if (!item) return { ok: false, error: 'No recently played item' };
+  return performLaunch(item.id);
+});
+// The widget's own close control turns off the same persisted setting the
+// Settings toggle controls (rather than just hiding this window instance),
+// so it doesn't silently reappear on the next launch — and pushes the change
+// back to any open main window so its Settings panel doesn't go stale.
+ipcMain.handle('widget:hide', () => {
+  store.set('settings', { ...store.getSettings(), showDesktopWidget: false });
+  const updated = store.getSettings();
+  applyWidgetVisibility(false);
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('settings:updated', updated);
   return updated;
 });
 
@@ -852,6 +1012,11 @@ function touchLastPlayed(id) {
   const today = localDateKey(new Date());
   const days = store.getActivityDays();
   if (!days.includes(today)) store.set('activityDays', [...days, today].sort());
+
+  // Every real launch can move the streak and the "last played" quick-action —
+  // keep the widget live without the user reopening it. Safe to call before
+  // createWidget() ever ran (pushWidgetUpdate no-ops while widget is null).
+  pushWidgetUpdate();
 }
 
 // A "streak" is only meaningful if it's counted from something the app actually
