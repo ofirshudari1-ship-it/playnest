@@ -46,6 +46,15 @@ export default function SystemMonitor() {
     return 'normal';
   };
 
+  // Severity must never ride on color alone (colorblind users can't
+  // distinguish the green/amber/red text) — every level pairs a small glyph
+  // and an accessible label with the color class.
+  const STATUS_ICON: Record<string, string> = { normal: '', warning: '▲', critical: '⛔' };
+  const statusLabel = (level: string) =>
+    level === 'critical' ? t('systemMonitor.statusCritical')
+      : level === 'warning' ? t('systemMonitor.statusWarning')
+      : t('systemMonitor.statusNormal');
+
   return (
     <div className="game-benchmark">
       <h2>{t('systemMonitor.title')}</h2>
@@ -67,8 +76,11 @@ export default function SystemMonitor() {
           <div className="metric-box">
             <div className="metric-header">
               <span>{t('systemMonitor.cpuLabel')}</span>
-              <span className={`value ${barColor(stats?.cpuLoad ?? null)}`}>
-                {stats?.cpuLoad != null ? `${stats.cpuLoad}%` : '—'}
+              <span
+                className={`value ${barColor(stats?.cpuLoad ?? null)}`}
+                title={statusLabel(barColor(stats?.cpuLoad ?? null))}
+              >
+                {STATUS_ICON[barColor(stats?.cpuLoad ?? null)]} {stats?.cpuLoad != null ? `${stats.cpuLoad}%` : '—'}
               </span>
             </div>
             <div className="meter"><div className="bar" style={{ width: `${stats?.cpuLoad ?? 0}%` }} /></div>
@@ -78,8 +90,11 @@ export default function SystemMonitor() {
           <div className="metric-box">
             <div className="metric-header">
               <span>{t('systemMonitor.ramLabel')}</span>
-              <span className={`value ${barColor(stats?.ramPercent ?? null)}`}>
-                {stats?.ramPercent != null ? `${stats.ramPercent}%` : '—'}
+              <span
+                className={`value ${barColor(stats?.ramPercent ?? null)}`}
+                title={statusLabel(barColor(stats?.ramPercent ?? null))}
+              >
+                {STATUS_ICON[barColor(stats?.ramPercent ?? null)]} {stats?.ramPercent != null ? `${stats.ramPercent}%` : '—'}
               </span>
             </div>
             <div className="meter"><div className="bar" style={{ width: `${stats?.ramPercent ?? 0}%` }} /></div>
@@ -91,7 +106,11 @@ export default function SystemMonitor() {
           <div className="metric-box">
             <div className="metric-header">
               <span>{t('systemMonitor.tempLabel')}</span>
-              <span className={`value ${stats?.cpuTempC && stats.cpuTempC > 80 ? 'warning' : 'good'}`}>
+              <span
+                className={`value ${stats?.cpuTempC && stats.cpuTempC > 80 ? 'warning' : 'good'}`}
+                title={statusLabel(stats?.cpuTempC && stats.cpuTempC > 80 ? 'warning' : 'normal')}
+              >
+                {stats?.cpuTempC && stats.cpuTempC > 80 ? '▲ ' : ''}
                 {stats?.cpuTempC != null ? `${stats.cpuTempC}°C` : t('systemMonitor.tempNA')}
               </span>
             </div>

@@ -289,7 +289,7 @@ button:focus-visible {
 
 .help-tips ul {
   margin: 0;
-  padding-left: 20px;
+  padding-inline-start: 20px;
   list-style: none;
 }
 
@@ -469,7 +469,7 @@ button:focus-visible {
   color: var(--text-faint);
   font-family: 'Monaco', monospace;
   overflow-x: auto;
-  text-align: left;
+  text-align: start;
 }
 
 .app-shell {
@@ -481,7 +481,7 @@ button:focus-visible {
 /* ---------- Sidebar ---------- */
 .sidebar {
   background: var(--bg-elevated);
-  border-right: 1px solid var(--border);
+  border-inline-end: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
@@ -529,14 +529,15 @@ button:focus-visible {
   background: transparent;
   border: none;
   width: 100%;
-  text-align: left;
+  text-align: start;
   transition: background 0.15s, color 0.15s;
 }
 
 .nav-item:hover { background: var(--bg-hover); color: var(--text); }
 .nav-item.active { background: var(--bg-hover); color: var(--text); box-shadow: inset 2px 0 0 var(--accent); }
+:root[dir='rtl'] .nav-item.active { box-shadow: inset -2px 0 0 var(--accent); }
 .nav-item.active .icon { color: var(--accent); }
-.nav-item .count { margin-left: auto; color: var(--text-faint); font-size: 12px; }
+.nav-item .count { margin-inline-start: auto; color: var(--text-faint); font-size: 12px; }
 .nav-item .icon, .icon-btn .icon { flex-shrink: 0; }
 
 .sidebar-footer {
@@ -573,6 +574,16 @@ button:focus-visible {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 8px 16px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* The visible <input> has its own outline suppressed (it sits borderless
+   inside the pill), so the focus ring needs to move to the pill container
+   via :focus-within — otherwise tabbing into search leaves no visible
+   indicator at all. */
+.search-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.25);
 }
 
 .search-box input {
@@ -656,7 +667,7 @@ button:focus-visible {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .icon-btn {
@@ -799,7 +810,7 @@ button:focus-visible {
 .fav-badge {
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   background: rgba(10, 12, 17, 0.7);
   border-radius: 999px;
   width: 26px;
@@ -811,11 +822,12 @@ button:focus-visible {
 }
 
 /* Shown on cards added within the last 7 days (never alongside .fav-badge —
-   GameCard only renders one or the other in the top-right corner). */
+   GameCard only renders one or the other in the corner near the end edge:
+   top-right in LTR, top-left in RTL). */
 .new-badge {
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   background: var(--accent-gradient);
   color: #fff;
   font-size: 9px;
@@ -829,7 +841,7 @@ button:focus-visible {
 .source-badge {
   position: absolute;
   top: 8px;
-  left: 8px;
+  inset-inline-start: 8px;
   background: rgba(10, 12, 17, 0.7);
   color: var(--text-dim);
   font-size: 9px;
@@ -887,7 +899,7 @@ button:focus-visible {
   border: 1px solid var(--border);
   font-size: 12px;
   color: var(--text-dim);
-  margin-right: 6px;
+  margin-inline-end: 6px;
 }
 
 .stat-row { display: flex; gap: 22px; margin: 18px 0; flex-wrap: wrap; }
@@ -900,7 +912,7 @@ button:focus-visible {
 .close-x {
   position: absolute;
   top: 16px;
-  right: 16px;
+  inset-inline-end: 16px;
   background: rgba(10, 12, 17, 0.6);
   border: none;
   color: var(--text);
@@ -974,7 +986,7 @@ button:focus-visible {
   gap: 10px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   font-size: 13px;
@@ -1046,7 +1058,7 @@ button:focus-visible {
 }
 .drive-row.selected { border-color: var(--accent); background: rgba(124, 92, 255, 0.1); }
 .drive-row .drive-letter { font-weight: 700; font-size: 16px; width: 26px; }
-.drive-row .drive-space { margin-left: auto; color: var(--text-faint); font-size: 12px; }
+.drive-row .drive-space { margin-inline-start: auto; color: var(--text-faint); font-size: 12px; }
 
 .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; }
 .toggle-row .desc { color: var(--text-faint); font-size: 12px; margin-top: 2px; }
@@ -1057,10 +1069,11 @@ button:focus-visible {
   position: absolute; inset: 0; background: var(--border); border-radius: 999px; transition: 0.2s; cursor: pointer;
 }
 .slider::before {
-  content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s;
+  content: ''; position: absolute; width: 16px; height: 16px; inset-inline-start: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s;
 }
 .switch input:checked + .slider { background: var(--accent); }
 .switch input:checked + .slider::before { transform: translateX(18px); }
+:root[dir='rtl'] .switch input:checked + .slider::before { transform: translateX(-18px); }
 
 .wizard-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
 
@@ -1243,7 +1256,7 @@ a { color: var(--accent-2); }
 .filter-dropdown {
   position: absolute;
   top: 46px;
-  right: 0;
+  inset-inline-end: 0;
   width: 260px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -1321,7 +1334,7 @@ a { color: var(--accent-2); }
 .toast-stack {
   position: fixed;
   bottom: 22px;
-  right: 22px;
+  inset-inline-end: 22px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1448,7 +1461,7 @@ a { color: var(--accent-2); }
 .game-card .select-check {
   position: absolute;
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   width: 22px;
   height: 22px;
   border-radius: 6px;
@@ -1570,7 +1583,7 @@ a { color: var(--accent-2); }
 .genre-bar-time {
   font-size: 11px;
   color: var(--text-faint);
-  text-align: right;
+  text-align: end;
 }
 
 .recommendations-grid {
@@ -1619,7 +1632,7 @@ a { color: var(--accent-2); }
 .rec-score {
   position: absolute;
   top: 6px;
-  right: 6px;
+  inset-inline-end: 6px;
   background: var(--accent);
   color: white;
   padding: 3px 8px;
@@ -1695,7 +1708,7 @@ a { color: var(--accent-2); }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
 }
 
 .insight-icon {
@@ -1898,7 +1911,7 @@ a { color: var(--accent-2); }
 .rec-card {
   padding: 12px;
   background: var(--bg-hover);
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
   border-radius: var(--radius-sm);
   font-size: 13px;
   color: var(--text);
@@ -1936,7 +1949,7 @@ a { color: var(--accent-2); }
   content: "";
   height: 18px;
   width: 18px;
-  left: 2px;
+  inset-inline-start: 2px;
   bottom: 2px;
   background-color: var(--text-dim);
   transition: 0.3s;
@@ -1953,10 +1966,14 @@ input:checked + .slider:before {
   background-color: white;
 }
 
+:root[dir='rtl'] input:checked + .slider:before {
+  transform: translateX(-20px);
+}
+
 .tools-info {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
+  border-inline-start: 3px solid var(--accent);
   border-radius: var(--radius-md);
   padding: 20px;
 }

@@ -81,7 +81,7 @@ export default function PerformanceMode() {
           <button
             key={plan.id}
             className={`profile-btn ${activePlan === plan.id ? 'active' : ''}`}
-            style={{ width: '100%', textAlign: 'left', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14 }}
+            style={{ width: '100%', textAlign: 'start', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 14 }}
             onClick={() => selectPlan(plan.id)}
             disabled={switchingPlan !== null}
           >
