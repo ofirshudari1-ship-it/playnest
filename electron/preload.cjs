@@ -54,5 +54,13 @@ contextBridge.exposeInMainWorld('playnest', {
     const listener = () => callback();
     ipcRenderer.on('quickLaunch:trigger', listener);
     return () => ipcRenderer.removeListener('quickLaunch:trigger', listener);
+  },
+  // Pushed when a setting changes from somewhere other than this window's own
+  // Settings panel — currently only the desktop widget's close control (see
+  // widget:hide in main.cjs), which flips showDesktopWidget off directly.
+  onSettingsUpdated: (callback) => {
+    const listener = (_event, settings) => callback(settings);
+    ipcRenderer.on('settings:updated', listener);
+    return () => ipcRenderer.removeListener('settings:updated', listener);
   }
 });

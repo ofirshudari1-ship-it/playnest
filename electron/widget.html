@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<title>Playnest widget</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .card {
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px 14px;
+    background: linear-gradient(135deg, #7c5cff 0%, #22d3c5 100%);
+    border-radius: 18px;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    -webkit-app-region: drag;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    opacity: 0.95;
+  }
+  .brand img { width: 16px; height: 16px; border-radius: 4px; display: block; }
+  .icon-btn {
+    -webkit-app-region: no-drag;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: none;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+  .streak-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .flame { font-size: 22px; }
+  .streak-num { font-size: 30px; font-weight: 800; line-height: 1; }
+  .streak-label { font-size: 12px; opacity: 0.85; }
+  .streak-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+
+  .actions {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .action-btn {
+    -webkit-app-region: no-drag;
+    border: none;
+    border-radius: 9px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: rgba(255, 255, 255, 0.92);
+    color: #4a2fd6;
+  }
+  .action-btn:hover { background: #fff; }
+  .action-btn.secondary {
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+  }
+  .action-btn.secondary:hover { background: rgba(255, 255, 255, 0.28); }
+  .action-btn:disabled { opacity: 0.55; cursor: default; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="brand">
+        <img src="../assets/icon.png" alt="" />
+        <span>Playnest</span>
+      </div>
+      <button class="icon-btn" id="closeBtn" title="Hide widget">&#10005;</button>
+    </div>
+
+    <div class="streak-row">
+      <span class="flame">&#128293;</span>
+      <span class="streak-num" id="streakNum">0</span>
+      <span class="streak-label" id="streakLabel">day streak</span>
+    </div>
+    <div class="streak-sub" id="streakSub"></div>
+
+    <div class="actions">
+      <button class="action-btn secondary" id="launchBtn" style="display:none"></button>
+      <button class="action-btn" id="openBtn">Open Playnest</button>
+    </div>
+  </div>
+
+  <script>
+    const streakNum = document.getElementById('streakNum');
+    const streakLabel = document.getElementById('streakLabel');
+    const streakSub = document.getElementById('streakSub');
+    const launchBtn = document.getElementById('launchBtn');
+    const openBtn = document.getElementById('openBtn');
+    const closeBtn = document.getElementById('closeBtn');
+
+    function render(data) {
+      if (!data) return;
+      const streak = data.streak || { currentStreak: 0, longestStreak: 0, totalActiveDays: 0 };
+      const current = streak.currentStreak || 0;
+      streakNum.textContent = String(current);
+      streakLabel.textContent = current === 1 ? 'day streak' : 'day streak';
+      streakSub.textContent = current === 0
+        ? 'Play something today to start a streak'
+        : `Longest: ${streak.longestStreak} · ${streak.totalActiveDays} active days`;
+
+      if (data.lastPlayed && data.lastPlayed.name) {
+        launchBtn.style.display = '';
+        launchBtn.textContent = `▶ ${data.lastPlayed.name}`;
+        launchBtn.disabled = false;
+      } else {
+        launchBtn.style.display = 'none';
+      }
+    }
+
+    openBtn.addEventListener('click', () => window.playnestWidget.openPlaynest());
+    closeBtn.addEventListener('click', () => window.playnestWidget.hide());
+    launchBtn.addEventListener('click', () => {
+      launchBtn.disabled = true;
+      window.playnestWidget.launchLastPlayed().finally(() => { launchBtn.disabled = false; });
+    });
+
+    window.playnestWidget.getData().then(render);
+    window.playnestWidget.onUpdate(render);
+  </script>
+</body>
+</html>

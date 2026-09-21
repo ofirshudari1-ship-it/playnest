@@ -377,7 +377,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
           </select>
         </div>
 
-        <div className="field" style={{ marginBottom: 0 }}>
+        <div className="field">
           <label>{t('settings.quickLaunchLabel')}</label>
           <div className="toggle-row" style={{ padding: 0 }}>
             <div>
@@ -389,6 +389,24 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
                 type="checkbox"
                 checked={settings.quickLaunchHotkeyEnabled}
                 onChange={(e) => patchSettings({ quickLaunchHotkeyEnabled: e.target.checked })}
+              />
+              <span className="slider" />
+            </label>
+          </div>
+        </div>
+
+        <div className="field" style={{ marginBottom: 0 }}>
+          <label>{t('settings.desktopWidgetLabel')}</label>
+          <div className="toggle-row" style={{ padding: 0 }}>
+            <div>
+              <div>{t('settings.desktopWidgetTitle')}</div>
+              <div className="desc">{t('settings.desktopWidgetDesc')}</div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.showDesktopWidget}
+                onChange={(e) => patchSettings({ showDesktopWidget: e.target.checked })}
               />
               <span className="slider" />
             </label>

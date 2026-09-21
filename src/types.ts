@@ -92,6 +92,10 @@ export interface Settings {
   // default — this is separate from the update-ready notification, which
   // always fires when the window is hidden regardless of this setting.
   backgroundActivityNotifications: boolean;
+  // Small always-on-top desktop widget (electron/widget.html) showing the
+  // live Streak Tracker and quick actions without opening the full app. On
+  // by default; see electron/main.cjs createWidget/applyWidgetVisibility.
+  showDesktopWidget: boolean;
 }
 
 export interface HardwareProfile {
@@ -184,6 +188,10 @@ declare global {
       // brought the window to the front by the time this arrives) — the renderer just
       // needs to focus the search bar.
       onQuickLaunchTrigger: (callback: () => void) => () => void;
+      // Fires when a setting changes from outside this window's own Settings
+      // panel — currently only the desktop widget's close control flipping
+      // showDesktopWidget off (electron/main.cjs widget:hide).
+      onSettingsUpdated: (callback: (settings: Settings) => void) => () => void;
     };
   }
 }

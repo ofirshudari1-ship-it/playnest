@@ -48,7 +48,12 @@ const DEFAULT_SETTINGS = {
   startMinimized: false,
   // Persists the dismissal of the library's "add a free SteamGridDB key" hint
   // banner (src/App.tsx CoverArtHintBanner) across sessions.
-  coverArtBannerDismissed: false
+  coverArtBannerDismissed: false,
+  // Small always-on-top desktop widget (electron/widget.html, main.cjs
+  // createWidget/applyWidgetVisibility) showing the live streak and one-click
+  // quick actions without opening the full app. On by default; toggled from
+  // Settings > System & Startup, and its own close control turns this off too.
+  showDesktopWidget: true
 };
 
 const store = new Store({
@@ -62,7 +67,12 @@ const store = new Store({
     lastScanOptions: null,
     settings: DEFAULT_SETTINGS,
     activityDays: [],
-    windowState: null
+    windowState: null,
+    // Last dragged screen position of the desktop widget (electron/main.cjs
+    // createWidget) — same top-level persistence pattern as windowState,
+    // separate from `settings` since it's a physical position, not a
+    // preference. null until the user has ever dragged it once.
+    widgetPosition: null
   }
 });
 

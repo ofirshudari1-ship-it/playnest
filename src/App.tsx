@@ -60,7 +60,8 @@ const DEFAULT_SETTINGS: Settings = {
   startMinimized: false,
   trayClickAction: 'single',
   backgroundActivityNotifications: false,
-  coverArtBannerDismissed: false
+  coverArtBannerDismissed: false,
+  showDesktopWidget: true
 };
 
 // Splash stays up at least this long so a fast startup never flickers by —
@@ -140,6 +141,7 @@ export default function App() {
   // Global quick-launch hotkey (main.cjs) already brought the window to the
   // front — just move focus to search so the user can start typing immediately.
   useEffect(() => window.playnest.onQuickLaunchTrigger(() => searchInputRef.current?.focus()), []);
+  useEffect(() => window.playnest.onSettingsUpdated(setSettings), []);
 
   // A quiet, dismissible banner — never a popup, never blocks anything. Checked
   // once per launch; a dismissed version stays dismissed until a newer one ships.
