@@ -83,6 +83,10 @@ export interface Settings {
   // window — see electron/main.cjs applyTrayClickBehavior(). Defaults to
   // 'single' (matches Discord/Spotify-style tray apps).
   trayClickAction: 'single' | 'double';
+  // The library's "add a free SteamGridDB key for real cover art" hint
+  // (App.tsx CoverArtHintBanner) is dismissed once and stays dismissed —
+  // this persists that across sessions instead of re-showing it every launch.
+  coverArtBannerDismissed?: boolean;
   // Opt-in system notification when a background auto-rescan finds new items
   // while the window is hidden (electron/main.cjs runAutoRescanIfDue). Off by
   // default — this is separate from the update-ready notification, which

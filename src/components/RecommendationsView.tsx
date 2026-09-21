@@ -20,7 +20,7 @@ export default function RecommendationsView({ library, onOpenItem }: Props) {
   }, [library]);
 
   return (
-    <div className="settings-panel">
+    <div className="wide-panel">
       <h1>{t('recommendations.title')}</h1>
       <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>{t('recommendations.subtitle')}</p>
 

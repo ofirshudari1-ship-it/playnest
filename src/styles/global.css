@@ -711,6 +711,7 @@ button:focus-visible {
 .content-scroll {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 24px 28px 60px;
 }
 
@@ -1097,6 +1098,73 @@ button:focus-visible {
 
 /* ---------- Settings ---------- */
 .settings-panel { max-width: 560px; }
+
+/* Wider sibling of .settings-panel for tool pages whose content (stat grids,
+   drive-usage bars, recommendation cards) actually benefits from the window's
+   real width instead of being squeezed into a 560px form column — reusing
+   .settings-panel here was the "page doesn't fill the window" bug on wide
+   and ultrawide desktops. Still capped and centered so lines of text don't
+   stretch unreadably wide on a 4K/ultrawide monitor. */
+.wide-panel { max-width: 1180px; margin: 0 auto; width: 100%; }
+
+/* ---------- Tabbed tool hubs (Sidebar "Tools" consolidation) ---------- */
+.tabbed-view { max-width: 1180px; margin: 0 auto; width: 100%; }
+.tab-strip {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.tab-strip-item {
+  -webkit-app-region: no-drag;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 500;
+}
+.tab-strip-item:hover { color: var(--text); }
+.tab-strip-item.active { color: var(--text); border-bottom-color: var(--accent); }
+.tab-strip-item.active .icon { color: var(--accent); }
+.tab-strip-content .wide-panel,
+.tab-strip-content .settings-panel,
+.tab-strip-content .performance-mode,
+.tab-strip-content .streak-tracker,
+.tab-strip-content .game-benchmark {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- Cover art hint banner ---------- */
+.cover-art-hint-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  margin-bottom: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-dim);
+  font-size: 13px;
+  animation: slideDown 0.25s ease-out;
+}
+.cover-art-hint-banner > .icon { flex-shrink: 0; color: var(--accent); }
+.cover-art-hint-banner > span { flex: 1; min-width: 0; }
+.cover-art-hint-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.cover-art-hint-actions .btn { padding: 6px 14px; font-size: 13px; }
 
 /* Groups related fields under a labeled section instead of one long flat
    list — each section reads as its own scannable chunk (General / Library /

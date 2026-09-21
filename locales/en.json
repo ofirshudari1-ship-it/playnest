@@ -29,6 +29,9 @@
     "collections": "Collections",
     "newCollection": "New Collection",
     "tools": "Tools",
+    "performanceHub": "Performance",
+    "insightsHub": "Insights",
+    "systemHub": "System",
     "performanceMode": "Performance Mode",
     "streakTracker": "Streak Tracker",
     "systemMonitor": "System Monitor",
@@ -190,6 +193,11 @@
     "available": "A new version of Playnest is available: v{version}",
     "download": "Download",
     "dismiss": "Not now"
+  },
+  "coverArtBanner": {
+    "text": "Cover art is missing for some items. Add a free SteamGridDB key in Settings to show real box art instead of letter tiles.",
+    "action": "Open Settings",
+    "dismiss": "Dismiss"
   },
   "error": {
     "errorTitle": "Something went wrong",

@@ -19,6 +19,8 @@ import Logo from './components/Logo';
 import StreakTracker from './components/StreakTracker';
 import PerformanceMode from './components/PerformanceMode';
 import SystemMonitor from './components/SystemMonitor';
+import TabbedView from './components/TabbedView';
+import CoverArtHintBanner from './components/CoverArtHintBanner';
 import type { HardwareProfile, LibraryItem, Settings } from './types';
 import { groupItems, sortItems, computeNeedsAttention } from './helpers';
 import { showToast } from './toast';
@@ -34,9 +36,6 @@ function emptyStateFor(view: ViewKey): { icon: IconName; titleKey: string; hintK
     case 'favorites': return { icon: 'favorites', titleKey: 'emptyState.favoritesTitle', hintKey: 'emptyState.favoritesHint' };
     case 'system': return { icon: 'system', titleKey: 'emptyState.systemTitle', hintKey: 'emptyState.systemHint' };
     case 'hidden': return { icon: 'hidden', titleKey: 'emptyState.hiddenTitle', hintKey: 'emptyState.hiddenHint' };
-    case 'analytics': return { icon: 'analytics', titleKey: 'emptyState.analyticsTitle', hintKey: 'emptyState.analyticsHint' };
-    case 'recommendations': return { icon: 'recommend', titleKey: 'emptyState.recommendationsTitle', hintKey: 'emptyState.recommendationsHint' };
-    case 'insights': return { icon: 'insights', titleKey: 'emptyState.insightsTitle', hintKey: 'emptyState.insightsHint' };
     default: return { icon: 'everything', titleKey: 'emptyState.defaultTitle', hintKey: 'emptyState.defaultHint' };
   }
 }
@@ -60,7 +59,8 @@ const DEFAULT_SETTINGS: Settings = {
   launchOnStartup: false,
   startMinimized: false,
   trayClickAction: 'single',
-  backgroundActivityNotifications: false
+  backgroundActivityNotifications: false,
+  coverArtBannerDismissed: false
 };
 
 // Splash stays up at least this long so a fast startup never flickers by —
@@ -481,17 +481,50 @@ export default function App() {
 
         <div className="content-scroll">
           {view === 'settings' && <SettingsPanel library={library} settings={settings} onSettingsChanged={setSettings} onRescan={() => setShowWizard(true)} onLibraryChanged={loadLibrary} />}
-          {view === 'hardware' && <HardwarePanel />}
-          {view === 'storage' && <StorageView library={library} onOpenItem={setSelectedItem} />}
-          {view === 'analytics' && <AnalyticsView library={library} />}
-          {view === 'recommendations' && <RecommendationsView library={library} onOpenItem={setSelectedItem} />}
-          {view === 'insights' && <InsightsView library={library} hardware={hardware} />}
-          {view === 'performance' && <PerformanceMode />}
-          {view === 'streak' && <StreakTracker />}
-          {view === 'benchmark' && <SystemMonitor />}
+
+          {/* Tools consolidated from 8 flat sidebar items into 3 grouped hubs —
+              each page below is unchanged, just reached via a tab instead of
+              its own nav entry. See Sidebar.tsx for the full rationale. */}
+          {view === 'performance-hub' && (
+            <TabbedView
+              tabs={[
+                { key: 'performance', icon: 'performance', label: t('sidebar.performanceMode'), content: <PerformanceMode /> },
+                { key: 'benchmark', icon: 'monitor', label: t('sidebar.systemMonitor'), content: <SystemMonitor /> },
+                { key: 'streak', icon: 'streak', label: t('sidebar.streakTracker'), content: <StreakTracker /> }
+              ]}
+            />
+          )}
+          {view === 'insights-hub' && (
+            <TabbedView
+              tabs={[
+                { key: 'analytics', icon: 'analytics', label: t('sidebar.analytics'), content: <AnalyticsView library={library} /> },
+                { key: 'recommendations', icon: 'recommend', label: t('sidebar.recommended'), content: <RecommendationsView library={library} onOpenItem={setSelectedItem} /> },
+                { key: 'insights', icon: 'insights', label: t('sidebar.gameInsights'), content: <InsightsView library={library} hardware={hardware} /> }
+              ]}
+            />
+          )}
+          {view === 'system-hub' && (
+            <TabbedView
+              tabs={[
+                { key: 'storage', icon: 'storage', label: t('sidebar.storage'), content: <StorageView library={library} onOpenItem={setSelectedItem} /> },
+                { key: 'hardware', icon: 'hardware', label: t('sidebar.myHardware'), content: <HardwarePanel /> }
+              ]}
+            />
+          )}
 
           {isLibraryView && (
             <>
+              <CoverArtHintBanner
+                library={library}
+                settings={settings}
+                onOpenSettings={() => {
+                  setView('settings');
+                  requestAnimationFrame(() => {
+                    document.getElementById('settings-api-key-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  });
+                }}
+                onDismiss={() => updateSettings({ coverArtBannerDismissed: true })}
+              />
               {visible.length === 0 && (
                 <div className="empty-state">
                   <div className="empty-state-icon"><Icon name={emptyCopy.icon} size={34} /></div>

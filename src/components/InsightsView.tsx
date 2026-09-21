@@ -34,7 +34,7 @@ export default function InsightsView({ library, hardware }: Props) {
   }, [library]);
 
   return (
-    <div className="settings-panel">
+    <div className="wide-panel">
       <h1>{t('insights.title')}</h1>
       <p style={{ color: 'var(--text-dim)', fontSize: 14 }}>{t('insights.subtitle')}</p>
 

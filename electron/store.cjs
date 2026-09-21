@@ -45,7 +45,10 @@ const DEFAULT_SETTINGS = {
   // Only meaningful in combination with launchOnStartup — whether the app
   // should open straight to the tray (via a --start-minimized launch arg)
   // instead of popping a window the moment Windows signs the user in.
-  startMinimized: false
+  startMinimized: false,
+  // Persists the dismissal of the library's "add a free SteamGridDB key" hint
+  // banner (src/App.tsx CoverArtHintBanner) across sessions.
+  coverArtBannerDismissed: false
 };
 
 const store = new Store({
