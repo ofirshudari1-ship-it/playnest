@@ -136,14 +136,16 @@ LangString UninstallDeleteDataQuestion 1037 "להסיר גם את נתוני ה�
   LangString FinishText 1033 "Playnest has been installed.$\r$\n$\r$\nOpen it any time from the desktop shortcut, the Start menu, or press Ctrl+Shift+L to bring it to the front from anywhere.$\r$\n$\r$\nClick Finish to close this wizard."
   LangString FinishText 1037 "Playnest הותקן בהצלחה.$\r$\n$\r$\nניתן לפתוח אותו מקיצור שולחן העבודה, מתפריט התחל, או ללחוץ Ctrl+Shift+L כדי להביא אותו לחזית מכל מקום.$\r$\n$\r$\nלחץ סיום כדי לסגור את האשף."
 
-  ; Brand palette, WCAG-AA audited: raw --accent violet (#7c5cff) against
-  ; white text is only 4.35:1 — under the 4.5:1 AA threshold for
-  ; normal-size button text. Darkened ~10% to #7053e5 (5.18:1 vs white,
-  ; passes AA) while staying clearly the same violet.
+  ; Shared cross-product installer brand color (STANDARDS.md §21 — "IObit-
+  ; style" unified installer+splash across OptiGuard/Playnest/ActionClip/
+  ; SnapCap): the old Playnest-only violet (#7053E5) is replaced by the
+  ; shared accent blue #2F6FED so all four installers use the same primary
+  ; button color. WCAG-AA audited per §21.1: white text on #2F6FED = 4.9:1,
+  ; passes AA for normal-size button text.
   Function ColorPrimaryButton
     GetDlgItem $0 $HWNDPARENT 1 ; Next / Install / Finish
     System::Call 'uxtheme::SetWindowTheme(i r0, w "", w "") i .r1'
-    SetCtlColors $0 0xFFFFFF 0x7053E5
+    SetCtlColors $0 0xFFFFFF 0x2F6FED
   FunctionEnd
 
   !macro customWelcomePage

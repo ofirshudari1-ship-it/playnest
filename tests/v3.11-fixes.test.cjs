@@ -134,16 +134,32 @@ test('Windows High Contrast (forced-colors), prefers-contrast and reduced-motion
   }
 });
 
-test('white text on the widget/splash gradient clears 4.5:1 thanks to the dark scrim', () => {
+test('white text on the widget gradient clears 4.5:1 thanks to the dark scrim', () => {
   const blend = (hex, alpha) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - alpha)).toString(16).padStart(2, '0')).join('');
-  for (const file of ['electron/widget.html', 'electron/splash.html']) {
-    const html = read(file);
-    const alpha = Number((html.match(/linear-gradient\(rgba\(0, 0, 0, ([0-9.]+)\)/) || [])[1]);
-    assert.ok(alpha > 0, `${file} should layer a dark scrim over the brand gradient`);
-    for (const stop of ['#7c5cff', '#22d3c5']) {
-      const r = ratio('#ffffff', blend(stop, alpha));
-      assert.ok(r >= 4.5, `${file}: white on ${stop} + ${alpha} scrim is ${r.toFixed(2)}:1`);
-    }
+  const html = read('electron/widget.html');
+  const alpha = Number((html.match(/linear-gradient\(rgba\(0, 0, 0, ([0-9.]+)\)/) || [])[1]);
+  assert.ok(alpha > 0, 'electron/widget.html should layer a dark scrim over the brand gradient');
+  for (const stop of ['#7c5cff', '#22d3c5']) {
+    const r = ratio('#ffffff', blend(stop, alpha));
+    assert.ok(r >= 4.5, `electron/widget.html: white on ${stop} + ${alpha} scrim is ${r.toFixed(2)}:1`);
+  }
+});
+
+// STANDARDS.md §21: splash.html moved off its own violet/teal brand gradient
+// onto the shared cross-product palette (#0B1220 -> #2F6FED), keeping the
+// same dark-scrim technique as widget.html (now 55%, since the muted
+// #94A3B8 .version label needs a stronger scrim than widget.html's white
+// text did to clear AA at the lighter #2F6FED end).
+test('splash text clears AA contrast on the shared brand gradient thanks to the dark scrim (STANDARDS.md §21.1)', () => {
+  const blend = (hex, alpha) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - alpha)).toString(16).padStart(2, '0')).join('');
+  const html = read('electron/splash.html');
+  assert.match(html, /linear-gradient\(135deg,\s*#0B1220\s*0%,\s*#2F6FED\s*100%\)/, 'splash.html should use the shared cross-product gradient');
+  const alpha = Number((html.match(/linear-gradient\(rgba\(0, 0, 0, ([0-9.]+)\)/) || [])[1]);
+  assert.ok(alpha > 0, 'electron/splash.html should layer a dark scrim over the brand gradient');
+  for (const stop of ['#0B1220', '#2F6FED']) {
+    const bg = blend(stop, alpha);
+    assert.ok(ratio('#EAEAEA', bg) >= 4.5, `electron/splash.html: #EAEAEA text on ${stop} + ${alpha} scrim is ${ratio('#EAEAEA', bg).toFixed(2)}:1`);
+    assert.ok(ratio('#94A3B8', bg) >= 4.5, `electron/splash.html: #94A3B8 .version text on ${stop} + ${alpha} scrim is ${ratio('#94A3B8', bg).toFixed(2)}:1`);
   }
 });
 

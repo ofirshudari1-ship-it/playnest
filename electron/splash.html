@@ -17,26 +17,35 @@
     align-items: center;
     justify-content: center;
     gap: 14px;
-    /* Same brand gradient + dark scrim as widget.html, so the white title and
-       version text clear WCAG AA contrast across the whole gradient. */
+    /* Shared cross-product brand identity (STANDARDS.md §21 — "IObit-style"
+       unified installer+splash across OptiGuard/Playnest/ActionClip/SnapCap):
+       same dark base + accent-blue gradient and same border/glow color in
+       every tool's splash, so users immediately recognize one company made
+       all of them. Only the icon inside stays product-specific.
+       Same dark-scrim technique as widget.html, tuned to 55%: #EAEAEA text
+       straight on the raw gradient measures only ~3.8:1 at the #2F6FED end
+       (below WCAG AA 4.5:1 for normal text), and the muted #94A3B8 .version
+       label fares worse still. A 55% scrim clears 4.5:1+ for both across the
+       whole gradient (8.6:1 / 4.8:1 at the #2F6FED end, higher elsewhere). */
     background:
-      linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
-      linear-gradient(135deg, #7c5cff 0%, #22d3c5 100%);
+      linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+      linear-gradient(135deg, #0B1220 0%, #2F6FED 100%);
+    border: 1px solid #1E2A45;
     border-radius: 16px;
-    color: #fff;
+    color: #EAEAEA;
     -webkit-app-region: drag;
   }
-  img { width: 72px; height: 72px; border-radius: 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
-  h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
+  img { width: 72px; height: 72px; border-radius: 18px; box-shadow: 0 0 0 2px #2F6FED, 0 8px 24px rgba(0,0,0,0.35); }
+  h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.2px; color: #EAEAEA; }
   .spinner {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    border: 3px solid rgba(255,255,255,0.35);
-    border-top-color: #fff;
+    border: 3px solid rgba(234,234,234,0.25);
+    border-top-color: #5B9AFF;
     animation: spin 0.8s linear infinite;
   }
-  .version { position: absolute; bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.85); }
+  .version { position: absolute; bottom: 10px; font-size: 11px; color: #94A3B8; }
   @keyframes spin { to { transform: rotate(360deg); } }
   @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.6s; } }
   @media (forced-colors: active) {

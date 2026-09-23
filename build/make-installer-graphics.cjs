@@ -68,37 +68,41 @@ async function main() {
   const logoInner = logoSvg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 
   // Header banner (top of every "assisted installer" page): small mark + wordmark
-  // on white, right-aligned per MUI_HEADERIMAGE_RIGHT.
+  // on white, right-aligned per MUI_HEADERIMAGE_RIGHT. Left as white per NSIS
+  // convention (the header strip sits above the page content, not part of the
+  // dark brand banner) — wordmark color updated to the shared accent blue so
+  // it still reads as the same brand as the sidebar below.
   const header = `
     <svg width="150" height="57" viewBox="0 0 150 57" xmlns="http://www.w3.org/2000/svg">
       <rect width="150" height="57" fill="#ffffff"/>
       <g transform="translate(96,8) scale(0.0393)">${logoInner}</g>
-      <text x="90" y="35" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" fill="#1a1f2e">Playnest</text>
+      <text x="90" y="35" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="700" fill="#0B1220">Playnest</text>
     </svg>`;
   await svgToBmp(header, 150, 57, path.join(assetsDir, 'installerHeader.bmp'));
 
-  // Welcome/finish sidebar: full-bleed brand gradient with the mark + wordmark,
-  // the classic tall banner look most Windows installers use. Mirrors the
-  // actual logo.svg gradient story (light violet -> violet -> teal, see its
-  // own #bg stops) instead of an arbitrary violet-to-black fade, so the
-  // installer reads as the same brand as the app icon. The teal end is
-  // darkened (not the logo's bright #22d3c5) purely for white-text contrast,
-  // and sits low enough (past the text block) that legibility isn't affected.
+  // Welcome/finish sidebar: shared cross-product brand banner (STANDARDS.md
+  // §21 — "IObit-style" unified installer+splash across OptiGuard/Playnest/
+  // ActionClip/SnapCap). Same dark base + accent-blue gradient in every
+  // tool's installer sidebar, so people immediately recognize one company
+  // made all of them — only the mark/wordmark inside stays product-specific.
+  // Was a Playnest-only violet->teal gradient; replaced with the shared
+  // palette from STANDARDS.md §21.1 (#0B1220 base, #2F6FED accent, #5B9AFF
+  // accent-light, #94A3B8 muted text) per that decision.
   const sidebar = `
     <svg width="164" height="314" viewBox="0 0 164 314" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#8f72ff"/>
-          <stop offset="45%" stop-color="#7c5cff"/>
-          <stop offset="100%" stop-color="#0d332f"/>
+          <stop offset="0%" stop-color="#0B1220"/>
+          <stop offset="55%" stop-color="#0B1220"/>
+          <stop offset="100%" stop-color="#2F6FED"/>
         </linearGradient>
       </defs>
       <rect width="164" height="314" fill="url(#bg)"/>
-      <rect x="0" y="274" width="164" height="40" fill="#22d3c5" opacity="0.16"/>
+      <rect x="0" y="274" width="164" height="40" fill="#5B9AFF" opacity="0.16"/>
       <g transform="translate(32,60) scale(0.0875)">${logoInner}</g>
-      <text x="82" y="185" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" fill="#ffffff">Playnest</text>
-      <text x="82" y="208" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#d8d2ff">Your game library,</text>
-      <text x="82" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#d8d2ff">organized</text>
+      <text x="82" y="185" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="800" fill="#EAEAEA">Playnest</text>
+      <text x="82" y="208" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#94A3B8">Your game library,</text>
+      <text x="82" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#94A3B8">organized</text>
     </svg>`;
   await svgToBmp(sidebar, 164, 314, path.join(assetsDir, 'installerSidebar.bmp'));
 }
