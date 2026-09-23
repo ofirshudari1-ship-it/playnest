@@ -21,6 +21,9 @@ let splash = null;
 let tray = null;
 let widget = null;
 let isQuitting = false;
+// Set by createWindow() while a splash is waiting for the renderer to report
+// it's ready (see 'app:rendererReady'); null otherwise.
+let pendingReveal = null;
 
 // ---- Branded splash screen (STANDARDS.md §19 — mandatory template, modeled
 // 1:1 on HOMEY AI's desktop/splash.html + desktop/main.js createSplash/
@@ -79,6 +82,7 @@ function closeSplash() {
 // Settings > System & Startup or the widget's own close control.
 const WIDGET_WIDTH = 260;
 const WIDGET_HEIGHT = 190;
+const WIDGET_REFRESH_MS = 5 * 60 * 1000;
 
 function getInitialWidgetPosition() {
   try {
@@ -94,13 +98,28 @@ function getInitialWidgetPosition() {
   }
 }
 
+// Only items performLaunch() can actually start count — a game uninstalled
+// since it was last played (its .exe gone, no launcher URL) would otherwise
+// sit on the widget as a button that silently does nothing, hiding the
+// next-most-recent game that *would* launch. Invalid/missing timestamps are
+// skipped rather than sorting as NaN.
+function isLaunchable(item) {
+  if (item.launchCommand) return true;
+  try {
+    return Boolean(item.executable) && fs.existsSync(item.executable);
+  } catch {
+    return false;
+  }
+}
+
 function findMostRecentlyPlayedItem() {
   const library = store.get('library');
-  const played = library.filter((i) => i.lastPlayedAt);
-  if (played.length === 0) return null;
-  played.sort((a, b) => new Date(b.lastPlayedAt).getTime() - new Date(a.lastPlayedAt).getTime());
-  const top = played[0];
-  return { id: top.id, name: top.name };
+  const played = library
+    .map((i) => ({ item: i, at: i.lastPlayedAt ? new Date(i.lastPlayedAt).getTime() : NaN }))
+    .filter((p) => Number.isFinite(p.at))
+    .sort((a, b) => b.at - a.at);
+  const top = played.find((p) => isLaunchable(p.item));
+  return top ? { id: top.item.id, name: top.item.name } : null;
 }
 
 function getWidgetData() {
@@ -153,6 +172,13 @@ function createWidget() {
     pushWidgetUpdate();
   });
 
+  // The streak is date-relative: with no launch in between, "current streak"
+  // must drop to 0 once a full day passes with no activity, but nothing else
+  // would push that change (pushes only fire on launches/rescans). A widget
+  // left open overnight would keep showing yesterday's number. A cheap
+  // periodic refresh keeps it truthful.
+  const refreshTimer = setInterval(pushWidgetUpdate, WIDGET_REFRESH_MS);
+
   // Debounced the same way saveWindowState's caller does (scheduleSaveWindowState)
   // — dragging fires many 'move' events per second, and only the settled
   // position needs to hit disk.
@@ -167,6 +193,7 @@ function createWidget() {
   });
   widget.on('closed', () => {
     if (moveTimer) clearTimeout(moveTimer);
+    clearInterval(refreshTimer);
     widget = null;
   });
 
@@ -356,7 +383,20 @@ function createWindow() {
     }
   });
 
-  if (initialBounds.isMaximized) mainWindow.maximize();
+  // BrowserWindow.maximize() also *shows* a hidden window (documented Electron
+  // behavior) — calling it here, right after creation, used to pop the blank
+  // main window up underneath the splash for anyone whose last session ended
+  // maximized, and worse, un-hid a --start-minimized-at-login launch that was
+  // supposed to stay in the tray. Deferred to whenever the window is actually
+  // shown for the first time instead (revealMainWindow / first 'show').
+  let pendingMaximize = Boolean(initialBounds.isMaximized);
+  const applyPendingMaximize = () => {
+    if (!pendingMaximize || !mainWindow || mainWindow.isDestroyed()) return false;
+    pendingMaximize = false;
+    mainWindow.maximize();
+    return true;
+  };
+  mainWindow.once('show', applyPendingMaximize);
 
   let saveStateTimer = null;
   const scheduleSaveWindowState = () => {
@@ -410,27 +450,45 @@ function createWindow() {
   // correct per STANDARDS.md 11.9 rather than relying on process exit alone.
   mainWindow.on('closed', () => {
     mainWindow = null;
+    pendingReveal = null;
+    // With minimize-to-tray OFF the user asked for X to mean "exit". But the
+    // desktop widget is a second BrowserWindow, so 'window-all-closed' never
+    // fires while it's open — the process used to linger with no main window,
+    // and the tray's "Open Playnest" (and relaunching from the shortcut) then
+    // did nothing because they only ever .show()'d the now-null mainWindow.
+    // Quit explicitly instead of relying on window-all-closed.
+    if (!isQuitting && !store.getSettings().minimizeToTray) {
+      isQuitting = true;
+      app.quit();
+    }
   });
 
-  // Swap the splash for the real window exactly once, whichever of the three
-  // triggers fires first: the page actually finished loading (respecting the
+  // Swap the splash for the real window exactly once, whichever trigger fires
+  // first: the renderer reports its first real content is on screen (library
+  // + settings loaded — see 'app:rendererReady' below; respects the
   // SPLASH_MIN_MS floor so a fast/cached load doesn't flash-and-vanish), the
-  // page failed to load (still has to reveal the window so the user can see
-  // the error state instead of being stuck on branding forever), or the
-  // SPLASH_MAX_MS safety timeout in case loading just hangs.
+  // page failed to load or its renderer died (still has to reveal the window
+  // so the user sees the error state instead of being stuck on branding), or
+  // the SPLASH_MAX_MS safety timeout in case loading just hangs. Revealing on
+  // did-finish-load (as before) showed the window while React was still on its
+  // own in-app loading screen — a visible second splash.
   let revealed = false;
   function revealMainWindow() {
     if (revealed || !mainWindow || mainWindow.isDestroyed()) return;
     revealed = true;
+    pendingReveal = null;
     closeSplash();
-    mainWindow.show();
+    // maximize() shows the window itself; otherwise show() as normal.
+    if (!applyPendingMaximize()) mainWindow.show();
+    mainWindow.focus();
   }
   if (showSplash) {
-    mainWindow.webContents.once('did-finish-load', () => {
+    pendingReveal = () => {
       const elapsed = Date.now() - splashShownAt;
       setTimeout(revealMainWindow, Math.max(0, SPLASH_MIN_MS - elapsed));
-    });
+    };
     mainWindow.webContents.once('did-fail-load', revealMainWindow);
+    mainWindow.webContents.once('render-process-gone', revealMainWindow);
     setTimeout(revealMainWindow, SPLASH_MAX_MS);
   } else {
     // No splash was shown for a started-minimized-at-login launch — just show
@@ -453,27 +511,32 @@ function createWindow() {
 // default binding in Windows, OBS, Discord, Steam, or the browsers.
 const QUICK_LAUNCH_ACCELERATOR = 'Control+Shift+L';
 
-function bringMainWindowToFront() {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  if (mainWindow.isMinimized()) mainWindow.restore();
-  if (!mainWindow.isVisible()) mainWindow.show();
-  mainWindow.focus();
-  mainWindow.webContents.send('quickLaunch:trigger');
-}
-
-// Same "restore/show/focus" as bringMainWindowToFront above, minus the
-// search-bar jump — used by the widget's "Open Playnest" button, which just
-// wants the window in front, not the quick-launch hotkey's search behavior.
-// Also covers the case where mainWindow was fully closed (e.g. quit from an
-// earlier session state) rather than just hidden to tray.
-function bringMainWindowToFrontQuiet() {
+// The one restore/show/focus path for every "bring Playnest back" entry point
+// (tray click, tray menu, relaunch via shortcut/second-instance, widget,
+// hotkey). Recreates the window if it no longer exists instead of silently
+// doing nothing — previously the tray/second-instance paths called
+// mainWindow?.show() and were no-ops whenever mainWindow was null.
+// Returns true if a window was already there to show (false = one is being
+// created and will reveal itself via the splash flow).
+function showMainWindow() {
   if (!mainWindow || mainWindow.isDestroyed()) {
     createWindow();
-    return;
+    return false;
   }
   if (mainWindow.isMinimized()) mainWindow.restore();
   if (!mainWindow.isVisible()) mainWindow.show();
   mainWindow.focus();
+  return true;
+}
+
+function bringMainWindowToFront() {
+  if (showMainWindow()) mainWindow.webContents.send('quickLaunch:trigger');
+}
+
+// Same as bringMainWindowToFront above, minus the search-bar jump — used by
+// the widget's "Open Playnest" button, which just wants the window in front.
+function bringMainWindowToFrontQuiet() {
+  showMainWindow();
 }
 
 // Registration is best-effort: globalShortcut.register() returns false (never
@@ -513,7 +576,7 @@ function buildTrayMenu() {
   const favorites = store.get('library').filter((i) => favIds.has(i.id)).slice(0, 5);
 
   return Menu.buildFromTemplate([
-    { label: 'Open Playnest', click: () => { mainWindow?.show(); mainWindow?.focus(); } },
+    { label: 'Open Playnest', click: () => showMainWindow() },
     ...(favorites.length
       ? [
           { type: 'separator' },
@@ -595,7 +658,7 @@ function applyTrayClickBehavior() {
   if (!tray) return;
   tray.removeAllListeners('click');
   tray.removeAllListeners('double-click');
-  const restore = () => { mainWindow?.show(); mainWindow?.focus(); };
+  const restore = () => showMainWindow();
   if (store.getSettings().trayClickAction === 'double') {
     tray.on('double-click', restore);
   } else {
@@ -635,11 +698,7 @@ if (!gotSingleInstanceLock) {
     // A jump-list "Favorites" click carries --launch=<id> and should launch
     // that game rather than (or in addition to) just refocusing the window.
     launchFromArgv(argv);
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      if (!mainWindow.isVisible()) mainWindow.show();
-      mainWindow.focus();
-    }
+    showMainWindow();
   });
 
   app.whenReady().then(() => {
@@ -722,19 +781,40 @@ ipcMain.handle('drives:list', async () => {
 // rescan (runAutoRescanIfDue further down) — both need to merge fresh scan
 // results into the store the same way (keep each item's original addedAt,
 // stamp lastScan, refresh the tray) so the two paths can't drift apart.
+// Fields that only Playnest itself ever writes onto a library item (never the
+// scanner) — play history and SteamGridDB metadata. A fresh scan result has
+// none of them, so without carrying them over every rescan (manual OR the
+// silent scheduled one) used to wipe the whole library's play history:
+// lastPlayedAt (the widget's "launch last-played" action and the "Last
+// played" sort), totalPlaytimeMinutes (Analytics/Insights), releaseYear.
+// Scanner ids are stable content hashes (scanner.cjs makeId), so matching by
+// id is exact.
+const PRESERVED_ITEM_FIELDS = ['addedAt', 'lastPlayedAt', 'totalPlaytimeMinutes', 'releaseYear'];
+
+function carryOverItemHistory(rawItems, previousLibrary, now) {
+  const previousById = new Map(previousLibrary.map((i) => [i.id, i]));
+  return rawItems.map((item) => {
+    const previous = previousById.get(item.id);
+    const merged = { ...item };
+    if (previous) {
+      for (const field of PRESERVED_ITEM_FIELDS) {
+        if (previous[field] != null && merged[field] == null) merged[field] = previous[field];
+      }
+    }
+    if (!merged.addedAt) merged.addedAt = now;
+    return merged;
+  });
+}
+
 function mergeScanResults(rawItems) {
   const previousLibrary = store.get('library');
-  const previousAddedAt = new Map(previousLibrary.map((i) => [i.id, i.addedAt]));
   const now = new Date().toISOString();
-  const withTimestamps = rawItems.map((item) => ({
-    ...item,
-    addedAt: previousAddedAt.get(item.id) || now
-  }));
+  const withTimestamps = carryOverItemHistory(rawItems, previousLibrary, now);
 
   store.set('library', withTimestamps);
   store.set('lastScan', now);
   refreshTrayMenu();
-  pushWidgetUpdate(); // a rescan can change which item is "last played" (e.g. after a backup import)
+  pushWidgetUpdate(); // a rescan can drop the last-played item (uninstalled) — keep the widget honest
   return withTimestamps;
 }
 
@@ -1317,8 +1397,33 @@ ipcMain.handle('app:info', () => {
   return { name: app.getName(), version: app.getVersion(), buildDate };
 });
 
-ipcMain.handle('app:openChangelog', () => {
-  shell.openPath(path.join(__dirname, '..', 'CHANGELOG.md'));
+// The renderer's first real screen is up (library + settings loaded) — the
+// splash can hand over now. Only the current main window's own webContents
+// can trigger it (any other sender is ignored).
+ipcMain.on('app:rendererReady', (event) => {
+  if (!pendingReveal || !mainWindow || mainWindow.isDestroyed()) return;
+  if (event.sender !== mainWindow.webContents) return;
+  pendingReveal();
+});
+
+// CHANGELOG.md is packed inside app.asar in an installed build. Electron's asar
+// transparency only applies to Node's fs inside this process — shell.openPath
+// hands the path to the Windows shell, which can't see into the archive, so
+// the About screen's "View changelog" link silently failed in every installed
+// build (it only worked in a dev checkout). Copy it out to a real temp file
+// first and open that.
+ipcMain.handle('app:openChangelog', async () => {
+  try {
+    const content = fs.readFileSync(path.join(__dirname, '..', 'CHANGELOG.md'), 'utf8');
+    const outPath = path.join(app.getPath('temp'), 'Playnest-CHANGELOG.md');
+    fs.writeFileSync(outPath, content, 'utf8');
+    const error = await shell.openPath(outPath);
+    if (error) logCrash('openChangelog', new Error(error));
+    return { ok: !error };
+  } catch (err) {
+    logCrash('openChangelog', err);
+    return { ok: false };
+  }
 });
 
 // ---- Analytics & Recommendations ----

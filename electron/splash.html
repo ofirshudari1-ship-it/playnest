@@ -17,7 +17,11 @@
     align-items: center;
     justify-content: center;
     gap: 14px;
-    background: linear-gradient(135deg, #7c5cff 0%, #22d3c5 100%);
+    /* Same brand gradient + dark scrim as widget.html, so the white title and
+       version text clear WCAG AA contrast across the whole gradient. */
+    background:
+      linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+      linear-gradient(135deg, #7c5cff 0%, #22d3c5 100%);
     border-radius: 16px;
     color: #fff;
     -webkit-app-region: drag;
@@ -32,15 +36,22 @@
     border-top-color: #fff;
     animation: spin 0.8s linear infinite;
   }
-  .version { position: absolute; bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.75); }
+  .version { position: absolute; bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.85); }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.6s; } }
+  @media (forced-colors: active) {
+    .card { background: Canvas; color: CanvasText; border: 1px solid CanvasText; }
+    img { box-shadow: none; }
+    .version { color: CanvasText; }
+    .spinner { border-color: GrayText; border-top-color: Highlight; }
+  }
 </style>
 </head>
 <body>
   <div class="card">
     <img src="../assets/icon.png" alt="" />
     <h1>Playnest</h1>
-    <div class="spinner"></div>
+    <div class="spinner" role="status" aria-label="Loading"></div>
     <span class="version" id="version"></span>
   </div>
   <script>

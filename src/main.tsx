@@ -13,6 +13,9 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 
   componentDidCatch(error: Error) {
     console.error('Playnest crashed:', error);
+    // A crash before App's own ready signal must still get the window revealed
+    // (so this error card is visible) rather than waiting out the 8s splash timeout.
+    window.playnest?.notifyReady?.();
   }
 
   render() {

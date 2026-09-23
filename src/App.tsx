@@ -64,9 +64,11 @@ const DEFAULT_SETTINGS: Settings = {
   showDesktopWidget: true
 };
 
-// Splash stays up at least this long so a fast startup never flickers by —
-// but never artificially longer than the real load takes beyond that floor.
-const MIN_SPLASH_MS = 900;
+// The branded native splash (electron/splash.html) already enforces the 800ms
+// minimum and stays up until this renderer reports it's ready (see the
+// notifyReady effect below) — so this in-app loading screen is normally never
+// seen at all. It no longer adds a second artificial delay of its own on top,
+// which used to show the user two splash screens back to back.
 
 function applyTheme(theme: Settings['theme']) {
   const resolved = theme === 'system'
@@ -101,7 +103,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    const startedAt = Date.now();
     (async () => {
       try {
         const [, loadedSettings] = await Promise.all([
@@ -115,11 +116,16 @@ export default function App() {
         console.error('Playnest startup error:', err);
         setFatalError(true);
       } finally {
-        const elapsed = Date.now() - startedAt;
-        setTimeout(() => setLoading(false), Math.max(0, MIN_SPLASH_MS - elapsed));
+        setLoading(false);
       }
     })();
   }, []);
+
+  // First real screen (library, wizard, or the fatal-error card) is about to
+  // paint — let main.cjs swap the splash for this window now (§19.2).
+  useEffect(() => {
+    if (!loading) requestAnimationFrame(() => window.playnest.notifyReady?.());
+  }, [loading]);
 
   useEffect(() => {
     applyTheme(settings.theme);
@@ -378,7 +384,7 @@ export default function App() {
           <div className="splash-logo"><Logo size={88} /></div>
           <div className="splash-name">Playnest</div>
           <div className="splash-tagline">{t('splash.tagline')}</div>
-          <div className="splash-bar"><div className="splash-bar-fill" /></div>
+          <div className="splash-spinner" role="status" aria-label={t('common.loading')} />
         </div>
       </div>
     );
