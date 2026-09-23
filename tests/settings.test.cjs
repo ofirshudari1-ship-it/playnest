@@ -77,9 +77,12 @@ test('DEFAULT_SETTINGS includes trayClickAction ("single") and backgroundActivit
 
 test('main.cjs sets isQuitting before app.quit() in the Quit Playnest tray item, so close handler cannot re-intercept it', () => {
   const main = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.cjs'), 'utf8');
+  // The label is now i18n'd via mt('trayMenu.quitPlaynest') (see LOCALES/mt
+  // near the top of main.cjs) instead of the hardcoded English literal, so
+  // this only pins down the click handler's ordering, not the label text.
   assert.match(
     main,
-    /label:\s*'Quit Playnest',\s*click:\s*\(\)\s*=>\s*\{\s*isQuitting\s*=\s*true;\s*app\.quit\(\);\s*\}/,
+    /label:\s*mt\('trayMenu\.quitPlaynest'\),\s*click:\s*\(\)\s*=>\s*\{\s*isQuitting\s*=\s*true;\s*app\.quit\(\);\s*\}/,
     'Quit Playnest must set isQuitting = true before app.quit(), in that order, on the same click handler'
   );
 });

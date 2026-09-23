@@ -16,3 +16,5 @@ DELETIONS.md
 
 # Local Claude Code dev tooling config, not part of the shipped product
 .claude/
+
+docs/BUSINESS_PLAN.md

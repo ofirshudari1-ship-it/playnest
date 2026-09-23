@@ -169,9 +169,9 @@ export default function App() {
       const brokenCount = needsAttention.filter((n) => n.reason === 'broken').length;
       const unplayedFavCount = needsAttention.length - brokenCount;
       const parts: string[] = [];
-      if (brokenCount > 0) parts.push(`${brokenCount} broken shortcut${brokenCount === 1 ? '' : 's'}`);
-      if (unplayedFavCount > 0) parts.push(`${unplayedFavCount} unplayed favorite${unplayedFavCount === 1 ? '' : 's'}`);
-      showToast(`Needs attention: ${parts.join(', ')}. Check Settings → Library Health.`, 'info');
+      if (brokenCount > 0) parts.push(t(brokenCount === 1 ? 'app.brokenShortcut' : 'app.brokenShortcuts', { count: brokenCount }));
+      if (unplayedFavCount > 0) parts.push(t(unplayedFavCount === 1 ? 'app.unplayedFavorite' : 'app.unplayedFavorites', { count: unplayedFavCount }));
+      showToast(t('app.needsAttention', { parts: parts.join(', ') }), 'info');
     });
     // Intentionally runs once per fresh library load (e.g. after a scan), not on
     // every render — re-checking on every keystroke/sort would be wasted fs work.
@@ -280,7 +280,7 @@ export default function App() {
       if (item && item.isFavorite !== makeFavorite) await window.playnest.toggleFavorite(id);
     }
     await loadLibrary();
-    showToast(`Updated favorites for ${selectedIds.size} item(s).`, 'success');
+    showToast(t('app.updatedFavorites', { count: selectedIds.size }), 'success');
     exitSelectMode();
   }
 
@@ -291,7 +291,7 @@ export default function App() {
       else hiddenSet.delete(id);
     }
     await updateSettings({ hiddenItemIds: [...hiddenSet] });
-    showToast(hide ? `Hid ${selectedIds.size} item(s).` : `Unhid ${selectedIds.size} item(s).`, 'success');
+    showToast(t(hide ? 'app.hidItems' : 'app.unhidItems', { count: selectedIds.size }), 'success');
     exitSelectMode();
   }
 
@@ -302,27 +302,27 @@ export default function App() {
       const result = await window.playnest.uninstallItem(id);
       if (result.ok) started++;
     }
-    showToast(`Started ${started} of ${selectedIds.size} uninstaller(s).`, started > 0 ? 'success' : 'error');
+    showToast(t('app.startedUninstallers', { started, total: selectedIds.size }), started > 0 ? 'success' : 'error');
     exitSelectMode();
     setTimeout(loadLibrary, 1500);
   }
 
   async function createCollection() {
-    const name = window.prompt('Name your new collection (e.g. "Couch Co-op", "Backlog"):');
+    const name = window.prompt(t('app.newCollectionPrompt'));
     const trimmed = name?.trim();
     if (!trimmed) return;
     if (settings.collections[trimmed]) {
-      showToast('A collection with that name already exists.', 'error');
+      showToast(t('app.collectionExists'), 'error');
       return;
     }
     await updateSettings({ collections: { ...settings.collections, [trimmed]: [] } });
     setView(`collection:${trimmed}`);
-    showToast(`Created "${trimmed}".`, 'success');
+    showToast(t('app.collectionCreated', { name: trimmed }), 'success');
   }
 
   async function handleAction(action: 'launch' | 'openFolder', id: string) {
     const result = action === 'launch' ? await window.playnest.launchItem(id) : await window.playnest.openFolder(id);
-    if (!result.ok) showToast(result.error || 'Something went wrong.', 'error');
+    if (!result.ok) showToast(result.error || t('app.somethingWentWrong'), 'error');
   }
 
   async function confirmUninstall() {
@@ -332,11 +332,11 @@ export default function App() {
     const item = library.find((i) => i.id === id);
     const result = await window.playnest.uninstallItem(id);
     if (result.ok) {
-      showToast(`Uninstalling ${item?.name || 'item'}...`, 'info');
+      showToast(t('app.uninstallingItem', { name: item?.name || t('app.uninstallAction') }), 'info');
       setSelectedItem(null);
       setTimeout(loadLibrary, 1500);
     } else {
-      showToast(result.error || 'Could not start the uninstaller.', 'error');
+      showToast(result.error || t('app.uninstallStartFailed'), 'error');
     }
   }
 
@@ -345,7 +345,7 @@ export default function App() {
     await window.playnest.toggleFavorite(id);
     await loadLibrary();
     setSelectedItem((prev) => (prev && prev.id === id ? { ...prev, isFavorite: !prev.isFavorite } : prev));
-    if (item) showToast(item.isFavorite ? `Removed ${item.name} from favorites.` : `Added ${item.name} to favorites.`, 'success');
+    if (item) showToast(t(item.isFavorite ? 'app.removedFromFavorites' : 'app.addedToFavorites', { name: item.name }), 'success');
   }
 
   async function handleToggleHidden(id: string) {
@@ -358,7 +358,7 @@ export default function App() {
       hiddenItemIds: nowHidden ? [...prev.hiddenItemIds, id] : prev.hiddenItemIds.filter((h) => h !== id)
     }));
     if (nowHidden) setSelectedItem(null);
-    if (item) showToast(nowHidden ? `Hid ${item.name}.` : `Unhid ${item.name}.`, 'success');
+    if (item) showToast(t(nowHidden ? 'app.hidItem' : 'app.unhidItem', { name: item.name }), 'success');
   }
 
   async function handleToggleCollection(collectionName: string, itemId: string) {
@@ -369,12 +369,12 @@ export default function App() {
   function surpriseMe() {
     const pool = visible.length > 0 ? visible : library.filter((i) => i.category === 'game');
     if (pool.length === 0) {
-      showToast('Nothing to pick from yet.', 'info');
+      showToast(t('app.nothingToPick'), 'info');
       return;
     }
     const pick = pool[Math.floor(Math.random() * pool.length)];
     setSelectedItem(pick);
-    showToast(`How about ${pick.name}?`, 'info');
+    showToast(t('app.surpriseSuggestion', { name: pick.name }), 'info');
   }
 
   if (loading) {
@@ -546,7 +546,7 @@ export default function App() {
                     <CategoryRow
                       key={group.label}
                       title={group.label}
-                      subtitle={`${group.items.length} items`}
+                      subtitle={t('app.itemsCount', { count: group.items.length })}
                       items={group.items}
                       onOpen={openItem}
                       layout="row"
@@ -565,13 +565,13 @@ export default function App() {
 
       {selectMode && (
         <div className="bulk-action-bar">
-          <span>{selectedIds.size} selected</span>
-          <button className="btn btn-secondary" disabled={selectedIds.size === 0} onClick={() => bulkFavorite(true)}>★ Favorite</button>
+          <span>{t('app.selectedCount', { count: selectedIds.size })}</span>
+          <button className="btn btn-secondary" disabled={selectedIds.size === 0} onClick={() => bulkFavorite(true)}>{t('app.favoriteAction')}</button>
           <button className="btn btn-secondary" disabled={selectedIds.size === 0} onClick={() => bulkHide(view !== 'hidden')}>
-            {view === 'hidden' ? 'Unhide' : 'Hide'}
+            {view === 'hidden' ? t('app.unhideAction') : t('app.hideAction')}
           </button>
-          <button className="btn btn-danger" disabled={selectedIds.size === 0} onClick={() => setConfirmBulkUninstall(true)}>Uninstall</button>
-          <button className="btn btn-secondary" onClick={exitSelectMode}>Done</button>
+          <button className="btn btn-danger" disabled={selectedIds.size === 0} onClick={() => setConfirmBulkUninstall(true)}>{t('app.uninstallAction')}</button>
+          <button className="btn btn-secondary" onClick={exitSelectMode}>{t('app.doneAction')}</button>
         </div>
       )}
 
@@ -594,9 +594,9 @@ export default function App() {
 
       {confirmUninstallId && (
         <ConfirmDialog
-          title="Uninstall this item?"
-          message={`This runs ${library.find((i) => i.id === confirmUninstallId)?.name || 'this item'}'s own uninstaller. Playnest just removes it from your library afterward — your files and settings for it are handled by that uninstaller, not by Playnest.`}
-          confirmLabel="Uninstall"
+          title={t('app.uninstallItemTitle')}
+          message={t('app.uninstallItemMessage', { name: library.find((i) => i.id === confirmUninstallId)?.name || t('app.uninstallAction') })}
+          confirmLabel={t('app.uninstallItemConfirm')}
           danger
           onConfirm={confirmUninstall}
           onCancel={() => setConfirmUninstallId(null)}
@@ -605,9 +605,9 @@ export default function App() {
 
       {confirmBulkUninstall && (
         <ConfirmDialog
-          title={`Uninstall ${selectedIds.size} items?`}
-          message="This runs each item's own uninstaller in turn. Playnest just removes them from your library afterward — nothing else is deleted by Playnest itself."
-          confirmLabel="Uninstall All"
+          title={t('app.uninstallBulkTitle', { count: selectedIds.size })}
+          message={t('app.uninstallBulkMessage')}
+          confirmLabel={t('app.uninstallBulkConfirm')}
           danger
           onConfirm={bulkUninstall}
           onCancel={() => setConfirmBulkUninstall(false)}

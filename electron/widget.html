@@ -2,6 +2,9 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8" />
+<!-- lang/dir are set from JS on load/update (see script below) to follow the
+     app's current language setting, same as the main window (src/i18n.ts
+     setLanguage). Left as en/ltr here only as the pre-JS fallback. -->
 <title>Playnest widget</title>
 <style>
   html, body {
@@ -89,7 +92,10 @@
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
-    text-align: left;
+    /* start/end (not left) so this mirrors correctly once <html dir="rtl">
+       is set from JS for Hebrew — see the language-driven dir attribute set
+       on load/update below. */
+    text-align: start;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -143,19 +149,50 @@
     const openBtn = document.getElementById('openBtn');
     const closeBtn = document.getElementById('closeBtn');
 
+    // Fallback English strings, used only for the very first paint before the
+    // main process's first getData() response lands (see getWidgetData() /
+    // main.cjs, which is the single source of truth for these strings —
+    // driven by the app's current language setting, same locales/*.json the
+    // main window's src/i18n.ts reads).
+    const FALLBACK_STRINGS = {
+      hide: 'Hide widget',
+      dayStreak: 'day streak',
+      noStreak: 'Play something today to start a streak',
+      longestSummaryTpl: 'Longest: {longest} · {days} active days',
+      openPlaynest: 'Open Playnest',
+      launchLastTpl: '▶ {name}'
+    };
+
+    function fill(tpl, vars) {
+      return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, String(v)), tpl);
+    }
+
     function render(data) {
       if (!data) return;
+
+      // Follow the app's current language/direction, exactly like the main
+      // window (src/i18n.ts setLanguage) — this window previously never
+      // updated lang/dir at all, so Hebrew always rendered LTR here.
+      const lang = data.lang === 'he' ? 'he' : 'en';
+      document.documentElement.setAttribute('lang', lang);
+      document.documentElement.setAttribute('dir', lang === 'he' ? 'rtl' : 'ltr');
+
+      const strings = data.strings || FALLBACK_STRINGS;
+      closeBtn.title = strings.hide;
+      closeBtn.setAttribute('aria-label', strings.hide);
+      openBtn.textContent = strings.openPlaynest;
+
       const streak = data.streak || { currentStreak: 0, longestStreak: 0, totalActiveDays: 0 };
       const current = streak.currentStreak || 0;
       streakNum.textContent = String(current);
-      streakLabel.textContent = 'day streak';
+      streakLabel.textContent = strings.dayStreak;
       streakSub.textContent = current === 0
-        ? 'Play something today to start a streak'
-        : `Longest: ${streak.longestStreak} · ${streak.totalActiveDays} active days`;
+        ? strings.noStreak
+        : fill(strings.longestSummaryTpl, { longest: streak.longestStreak, days: streak.totalActiveDays });
 
       if (data.lastPlayed && data.lastPlayed.name) {
         launchBtn.style.display = '';
-        launchBtn.textContent = `▶ ${data.lastPlayed.name}`;
+        launchBtn.textContent = fill(strings.launchLastTpl, { name: data.lastPlayed.name });
         launchBtn.disabled = false;
       } else {
         launchBtn.style.display = 'none';

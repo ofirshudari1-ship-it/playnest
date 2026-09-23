@@ -11,6 +11,21 @@ const { fetchCoverForItem, fileToDataUrl } = require('./steamgriddb.cjs');
 const { getHardwareProfile } = require('./hardware.cjs');
 const { DEFAULT_STEAMGRID_API_KEY } = require('./config.cjs');
 
+// ---- Main-process i18n (tray menu + desktop widget) ----
+// The renderer has its own richer i18n (src/i18n.ts), but the tray menu and
+// the desktop widget are built/pushed from here in the main process, which
+// never loads that TS module. Both read the very same locales/*.json files
+// so the two layers can never drift, and follow the same flat "section.key"
+// + {placeholder} + English-fallback contract as t() in src/i18n.ts.
+const LOCALES = { en: require('../locales/en.json'), he: require('../locales/he.json') };
+function mt(key, vars) {
+  const lang = store.getSettings().language === 'he' ? 'he' : 'en';
+  const resolve = (dict) => key.split('.').reduce((node, k) => (node == null ? undefined : node[k]), dict);
+  let str = resolve(LOCALES[lang]) ?? resolve(LOCALES.en) ?? key;
+  if (vars) for (const [k, v] of Object.entries(vars)) str = str.replace(`{${k}}`, String(v));
+  return str;
+}
+
 function effectiveApiKey(settings) {
   return settings.steamGridApiKey || DEFAULT_STEAMGRID_API_KEY;
 }
@@ -122,8 +137,25 @@ function findMostRecentlyPlayedItem() {
   return top ? { id: top.item.id, name: top.item.name } : null;
 }
 
+// Sent alongside the data on every push so the widget (a separate, sandboxed
+// renderer with no access to src/i18n.ts) can render in the app's current
+// language/direction without hardcoding English — see widget.html. The two
+// "*Tpl" strings keep their {placeholder} un-substituted so widget.html can
+// fill in the live numbers/name itself without re-round-tripping to main.
 function getWidgetData() {
-  return { streak: computeStreak(), lastPlayed: findMostRecentlyPlayedItem() };
+  return {
+    streak: computeStreak(),
+    lastPlayed: findMostRecentlyPlayedItem(),
+    lang: store.getSettings().language === 'he' ? 'he' : 'en',
+    strings: {
+      hide: mt('widgetPanel.hide'),
+      dayStreak: mt('widgetPanel.dayStreak'),
+      noStreak: mt('widgetPanel.noStreak'),
+      longestSummaryTpl: mt('widgetPanel.longestSummary', { longest: '{longest}', days: '{days}' }),
+      openPlaynest: mt('widgetPanel.openPlaynest'),
+      launchLastTpl: mt('widgetPanel.launchLast', { name: '{name}' })
+    }
+  };
 }
 
 // Pushed (not polled) whenever something the widget shows actually changes —
@@ -576,7 +608,7 @@ function buildTrayMenu() {
   const favorites = store.get('library').filter((i) => favIds.has(i.id)).slice(0, 5);
 
   return Menu.buildFromTemplate([
-    { label: 'Open Playnest', click: () => showMainWindow() },
+    { label: mt('trayMenu.openPlaynest'), click: () => showMainWindow() },
     ...(favorites.length
       ? [
           { type: 'separator' },
@@ -588,7 +620,7 @@ function buildTrayMenu() {
     // set before app.quit() so mainWindow's 'close' handler (which otherwise
     // intercepts every close while minimizeToTray is on) lets this one through
     // instead of just hiding the window again. See mainWindow.on('close', ...).
-    { label: 'Quit Playnest', click: () => { isQuitting = true; app.quit(); } }
+    { label: mt('trayMenu.quitPlaynest'), click: () => { isQuitting = true; app.quit(); } }
   ]);
 }
 
@@ -1040,6 +1072,14 @@ ipcMain.handle('settings:set', (event, newSettings) => {
   }
   if ('trayClickAction' in newSettings) applyTrayClickBehavior();
   if ('showDesktopWidget' in newSettings) applyWidgetVisibility(updated.showDesktopWidget);
+  // Tray menu labels and the widget's on-screen text are both built from
+  // mt()/getWidgetData() in the main process (see LOCALES above) — a language
+  // switch needs both rebuilt/re-pushed here, same as the renderer's own
+  // language switch re-renders via src/i18n.ts's subscribeLanguage().
+  if ('language' in newSettings) {
+    refreshTrayMenu();
+    pushWidgetUpdate();
+  }
   return updated;
 });
 

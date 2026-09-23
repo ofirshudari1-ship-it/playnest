@@ -27,8 +27,69 @@
   !insertmacro customCheckAppRunning
 !macroend
 
+; ============================================================
+; "Delete my data?" uninstall prompt (STANDARDS.md §11.5/§16.2)
+;
+; electron-builder builds NSIS installers in two makensis passes sharing
+; this same included file (see NsisTarget.js computeScriptAndSignUninstaller
+; / installer.nsi): one with BUILD_UNINSTALLER defined, which is the only
+; pass that !includes uninstaller.nsh (Function un.onInit / Section
+; "un.install", where customUnInit/customUnInstall actually get inserted —
+; this produces a throwaway signed copy of the uninstaller), and the main
+; pass without it, which never sees uninstaller.nsh at all. A Var declared
+; unconditionally here would sit unused in that second pass (nothing in it
+; ever references an un-only variable) and NSIS's "-WX" (warnings as
+; errors) turns that harmless "wasting memory" hint into a hard build
+; failure — so isDeleteUserData below is scoped to the BUILD_UNINSTALLER
+; pass only, matching where it's actually read/written.
+;
+; electron-builder's own template *can* wipe app data unconditionally (its
+; deleteAppDataOnUninstall option / --delete-app-data flag, via its own
+; $isDeleteAppData var — see the un.install Section in
+; node_modules/app-builder-lib/templates/nsis/uninstaller.nsh), but that
+; path never asks first, which is the wrong default for a tool that keeps
+; real user data (library scan cache, settings, cover-art cache, play-streak
+; history) only on this PC. We don't enable that option, and can't safely
+; set electron-builder's own $isDeleteAppData from here either — it's
+; declared *after* Function un.onInit in uninstaller.nsh, and NSIS requires
+; a Var's declaration to be parsed before first use. So this asks the
+; **one** legitimate uninstall question ("delete data too?", default = No
+; via MB_DEFBUTTON2 making "No" the focused/Enter-activated button) and
+; then removes the same three per-user $APPDATA locations electron-builder's
+; own deleter would have used (APP_FILENAME / APP_PRODUCT_FILENAME /
+; APP_PACKAGE_NAME — Electron's userData dir for this app is
+; $APPDATA\playnest, matching APP_PACKAGE_NAME since package.json's "name"
+; is "playnest").
+; ============================================================
+
+LangString UninstallDeleteDataQuestion 1033 "Also delete your Playnest library data (scan cache, settings, cover art, streak history)?$\r$\n$\r$\nChoose No to keep it in case you reinstall Playnest later."
+LangString UninstallDeleteDataQuestion 1037 "להסיר גם את נתוני הספרייה של Playnest (מטמון הסריקה, ההגדרות, עטיפות המשחקים והיסטוריית הרצף)?$\r$\n$\r$\nבחרו לא כדי לשמור אותם, למקרה שתתקינו את Playnest מחדש בעתיד."
+
+!ifdef BUILD_UNINSTALLER
+  Var isDeleteUserData
+!endif
+
 !macro customUnInit
   !insertmacro customCheckAppRunning
+
+  StrCpy $isDeleteUserData "0"
+  MessageBox MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2 "$(UninstallDeleteDataQuestion)" IDYES un_delete_data_yes
+  Goto un_delete_data_done
+  un_delete_data_yes:
+    StrCpy $isDeleteUserData "1"
+  un_delete_data_done:
+!macroend
+
+!macro customUnInstall
+  ${if} $isDeleteUserData == "1"
+    RMDir /r "$APPDATA\${APP_FILENAME}"
+    !ifdef APP_PRODUCT_FILENAME
+      RMDir /r "$APPDATA\${APP_PRODUCT_FILENAME}"
+    !endif
+    !ifdef APP_PACKAGE_NAME
+      RMDir /r "$APPDATA\${APP_PACKAGE_NAME}"
+    !endif
+  ${endif}
 !macroend
 
 ; ============================================================
