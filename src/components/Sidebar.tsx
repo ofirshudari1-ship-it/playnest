@@ -35,7 +35,14 @@ export default function Sidebar({ active, onSelect, library, settings, onNewColl
   const collectionNames = Object.keys(settings.collections || {}).sort((a, b) => a.localeCompare(b));
 
   const item = (key: ViewKey, icon: IconName, label: string, count?: number | string) => (
-    <button key={key} className={`nav-item ${active === key ? 'active' : ''}`} onClick={() => onSelect(key)}>
+    <button
+      key={key}
+      className={`nav-item ${active === key ? 'active' : ''}`}
+      onClick={() => onSelect(key)}
+      // The active view was conveyed by background/accent color only —
+      // screen readers now get it explicitly too (STANDARDS.md §18.2).
+      aria-current={active === key ? 'page' : undefined}
+    >
       <Icon name={icon} />
       <span>{label}</span>
       {count != null && <span className="count">{count}</span>}
@@ -43,7 +50,7 @@ export default function Sidebar({ active, onSelect, library, settings, onNewColl
   );
 
   return (
-    <div className="sidebar">
+    <nav className="sidebar" aria-label="Playnest">
       <div className="brand">
         <Logo size={34} />
         <div className="brand-name">Playnest</div>
@@ -77,6 +84,6 @@ export default function Sidebar({ active, onSelect, library, settings, onNewColl
           <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>{t('sidebar.footer')}</span>
         </div>
       </div>
-    </div>
+    </nav>
   );
 }

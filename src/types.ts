@@ -165,7 +165,8 @@ declare global {
       verifyLibrary: () => Promise<StaleItem[]>;
       removeItems: (ids: string[]) => Promise<{ ok: boolean; removed: number }>;
       appInfo: () => Promise<{ name: string; version: string; buildDate: string | null }>;
-      openChangelog: () => Promise<void>;
+      openChangelog: () => Promise<{ ok: boolean }>;
+      notifyReady?: () => void;
       exportLibrary: () => Promise<{ ok: boolean; path?: string; error?: string }>;
       importLibrary: () => Promise<{ ok: boolean; imported?: number; error?: string }>;
       getDriveUsage: () => Promise<DriveUsage[]>;

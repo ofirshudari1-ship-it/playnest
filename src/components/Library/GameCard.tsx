@@ -31,6 +31,11 @@ export default function GameCard({ item, onOpen, selectMode, isSelected }: Props
   // order, and Enter/Space activate them exactly like a click (native <button>
   // semantics on a non-<button> element per WAI-ARIA button pattern).
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // Only when the card itself has focus. Keydowns from the nested ▶ button
+    // bubble up here too — previously Enter/Space on that button hit this
+    // handler, whose preventDefault() cancelled the button's own activation
+    // and opened the detail modal instead of launching the game.
+    if (e.target !== e.currentTarget) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       onOpen(item);
