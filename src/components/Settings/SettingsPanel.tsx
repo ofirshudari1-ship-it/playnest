@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { LibraryItem, Settings, StaleItem, Theme, Language } from '../../types';
+import type { LibraryItem, Settings, StaleItem, Theme, Language, UpdaterStatus } from '../../types';
 import { showToast } from '../../toast';
 import { timeAgo, formatPlaytime } from '../../helpers';
 import { useTranslation } from '../../i18n';
@@ -23,11 +23,45 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
   const [staleItems, setStaleItems] = useState<StaleItem[] | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [renaming, setRenaming] = useState<{ name: string; value: string } | null>(null);
+  const [updaterStatus, setUpdaterStatus] = useState<UpdaterStatus | null>(null);
+  const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
 
   useEffect(() => {
     window.playnest.appInfo().then(setAppInfo);
     window.playnest.getLastScan().then(setLastScan);
+    window.playnest.getUpdaterStatus().then((s) => setLastCheckedAt(s.lastCheckedAt));
   }, []);
+
+  // Live status straight from the real electron-updater event stream in
+  // main.cjs — not polled, not simulated. Any terminal state (up to date,
+  // downloaded, error) also means a check just completed, so refresh the
+  // persisted "last checked" timestamp from the same source of truth.
+  useEffect(() => {
+    return window.playnest.onUpdaterStatus((status) => {
+      setUpdaterStatus(status);
+      if (status.state === 'available' || status.state === 'not-available' || status.state === 'error') {
+        setCheckingUpdates(false);
+        window.playnest.getUpdaterStatus().then((s) => setLastCheckedAt(s.lastCheckedAt));
+      }
+    });
+  }, []);
+
+  async function checkForUpdatesNow() {
+    setCheckingUpdates(true);
+    setUpdaterStatus({ state: 'checking' });
+    const result = await window.playnest.checkUpdatesNow();
+    if (!result.ok) {
+      // A dev build (no update feed) or an immediate failure still counts as
+      // "checked" — reflect it the same quiet way an offline check would look,
+      // never as a crash.
+      setUpdaterStatus({ state: 'error' });
+      setCheckingUpdates(false);
+      window.playnest.getUpdaterStatus().then((s) => setLastCheckedAt(s.lastCheckedAt));
+    }
+    // A successful trigger resolves via the 'checking-for-update' /
+    // 'update-available' / etc. event stream above, not this return value.
+  }
 
   useEffect(() => {
     if (!fetchingArt) return undefined;
@@ -127,6 +161,26 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
     light: t('settings.themeLight')
   };
   const THEME_ICONS: Record<Theme, string> = { system: '🖥️', dark: '🌙', light: '☀️' };
+
+  function updaterStatusText(): string | null {
+    if (!updaterStatus) return null;
+    switch (updaterStatus.state) {
+      case 'checking':
+        return t('settings.updatesStatusChecking');
+      case 'not-available':
+        return t('settings.updatesStatusUpToDate');
+      case 'available':
+        return t('settings.updatesStatusAvailable', { version: updaterStatus.version || '' });
+      case 'downloading':
+        return t('settings.updatesStatusDownloading', { percent: updaterStatus.percent });
+      case 'downloaded':
+        return t('settings.updatesStatusDownloaded');
+      case 'error':
+        return t('settings.updatesStatusError');
+      default:
+        return null;
+    }
+  }
 
   return (
     <div className="settings-panel">
@@ -410,6 +464,29 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
               />
               <span className="slider" />
             </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="settings-section">
+        <h2 className="settings-section-title">{t('settings.sectionUpdates')}</h2>
+
+        <div className="field" style={{ marginBottom: 0 }}>
+          <div className="hint" style={{ marginBottom: 10 }}>
+            {t('settings.updatesCurrentVersion', { version: appInfo?.version || '1.0.0' })}
+          </div>
+          <button className="btn btn-secondary" onClick={checkForUpdatesNow} disabled={checkingUpdates}>
+            {checkingUpdates ? t('settings.updatesChecking') : t('settings.updatesCheckButton')}
+          </button>
+          {updaterStatusText() && (
+            <div className="hint" style={{ marginTop: 10 }}>
+              {updaterStatusText()}
+            </div>
+          )}
+          <div className="hint" style={{ marginTop: 6, opacity: 0.7 }}>
+            {lastCheckedAt
+              ? t('settings.updatesLastChecked', { time: timeAgo(lastCheckedAt) })
+              : t('settings.updatesLastCheckedNever')}
           </div>
         </div>
       </div>

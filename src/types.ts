@@ -193,6 +193,21 @@ declare global {
       // panel — currently only the desktop widget's close control flipping
       // showDesktopWidget off (electron/main.cjs widget:hide).
       onSettingsUpdated: (callback: (settings: Settings) => void) => () => void;
+      // Settings > Updates — real electron-updater wiring (see electron/main.cjs).
+      checkUpdatesNow: () => Promise<{ ok: boolean; reason?: 'dev' | 'error' }>;
+      getUpdaterStatus: () => Promise<{ lastCheckedAt: string | null }>;
+      onUpdaterStatus: (callback: (status: UpdaterStatus) => void) => () => void;
     };
   }
 }
+
+// Mirrors the {state, ...} shape main.cjs sends over 'updater:status' for
+// every real electron-updater event (checking-for-update, update-available,
+// update-not-available, download-progress, update-downloaded, error).
+export type UpdaterStatus =
+  | { state: 'checking' }
+  | { state: 'available'; version?: string }
+  | { state: 'not-available' }
+  | { state: 'downloading'; percent: number }
+  | { state: 'downloaded'; version?: string }
+  | { state: 'error'; message?: string };

@@ -264,14 +264,57 @@ process.on('unhandledRejection', (err) => logCrash('MAIN unhandledRejection', er
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 
+// Pushes the real electron-updater event stream to the Settings screen (see
+// src/components/Settings/SettingsPanel.tsx "Updates" section) so the silent
+// background updater above has a visible, checkable status instead of being
+// invisible until a dialog/notification pops up on its own schedule. Sent as
+// a single tagged shape ({state, ...}) the renderer switches on — mirrors the
+// 'settings:updated' push pattern already used elsewhere in this file.
+function sendUpdaterStatus(status) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('updater:status', status);
+  }
+}
+
+// Persisted the same way every other setting is (electron-store, via
+// settings.lastVersionCheck) so "last checked" survives an app restart —
+// reuses the existing field rather than adding a second, parallel one.
+function recordUpdateCheckTime() {
+  const now = new Date().toISOString();
+  const updated = { ...store.getSettings(), lastVersionCheck: now };
+  store.set('settings', updated);
+  return now;
+}
+
+// Registered once, unconditionally (including in dev) so the manual "Check
+// for updates" button in Settings always gets a real status back — even a
+// dev build's inevitable "no update feed configured" error is a legitimate
+// status to show rather than a silently dead button. Only the *automatic*
+// startup check below is gated to packaged builds.
+autoUpdater.on('checking-for-update', () => {
+  sendUpdaterStatus({ state: 'checking' });
+});
+autoUpdater.on('update-available', (info) => {
+  recordUpdateCheckTime();
+  sendUpdaterStatus({ state: 'available', version: info?.version });
+});
+autoUpdater.on('update-not-available', () => {
+  recordUpdateCheckTime();
+  sendUpdaterStatus({ state: 'not-available' });
+});
+autoUpdater.on('download-progress', (progress) => {
+  sendUpdaterStatus({ state: 'downloading', percent: Math.round(progress?.percent || 0) });
+});
+autoUpdater.on('error', (err) => {
+  logCrash('autoUpdater', err);
+  sendUpdaterStatus({ state: 'error', message: err?.message || String(err) });
+});
+
 function initAutoUpdater() {
   if (isDev) return; // dev builds have no packaged app.asar / no update feed to hit
 
-  autoUpdater.on('error', (err) => {
-    logCrash('autoUpdater', err);
-  });
-
   autoUpdater.on('update-downloaded', (info) => {
+    sendUpdaterStatus({ state: 'downloaded', version: info?.version });
     // A dialog attached to a hidden parent window (minimized to tray) has no
     // taskbar entry and is easy to miss entirely — use a tray notification
     // instead whenever the window isn't currently visible. This always fires
@@ -1604,4 +1647,31 @@ ipcMain.handle('app:checkForUpdates', async () => {
   } catch {
     return { hasUpdate: false };
   }
+});
+
+// ---- Settings > Updates section — the real electron-updater instance above,
+// exposed to the renderer as a manual trigger + persisted "last checked"
+// timestamp. Distinct from app:checkForUpdates (the lightweight GitHub API
+// poll behind App.tsx's dismissible top banner) — this one drives the actual
+// silent auto-download/auto-install pipeline and its live status stream.
+ipcMain.handle('updater:checkNow', async () => {
+  if (isDev || !app.isPackaged) {
+    // No packaged app.asar / update feed to hit — report a real status
+    // instead of leaving the Settings button spinning forever.
+    recordUpdateCheckTime();
+    return { ok: false, reason: 'dev' };
+  }
+  try {
+    await autoUpdater.checkForUpdates();
+    return { ok: true };
+  } catch (err) {
+    logCrash('autoUpdater checkForUpdates (manual)', err);
+    recordUpdateCheckTime();
+    sendUpdaterStatus({ state: 'error', message: err?.message || String(err) });
+    return { ok: false, reason: 'error' };
+  }
+});
+
+ipcMain.handle('updater:getStatus', () => {
+  return { lastCheckedAt: store.getSettings().lastVersionCheck || null };
 });

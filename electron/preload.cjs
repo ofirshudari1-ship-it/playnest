@@ -65,5 +65,16 @@ contextBridge.exposeInMainWorld('playnest', {
     const listener = (_event, settings) => callback(settings);
     ipcRenderer.on('settings:updated', listener);
     return () => ipcRenderer.removeListener('settings:updated', listener);
+  },
+  // Settings > Updates — wired to the real electron-updater instance in
+  // main.cjs, not a mock. checkUpdatesNow() triggers autoUpdater.checkForUpdates();
+  // onUpdaterStatus streams its real event sequence (checking/available/
+  // not-available/downloading/downloaded/error) as it happens.
+  checkUpdatesNow: () => ipcRenderer.invoke('updater:checkNow'),
+  getUpdaterStatus: () => ipcRenderer.invoke('updater:getStatus'),
+  onUpdaterStatus: (callback) => {
+    const listener = (_event, status) => callback(status);
+    ipcRenderer.on('updater:status', listener);
+    return () => ipcRenderer.removeListener('updater:status', listener);
   }
 });

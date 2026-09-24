@@ -190,7 +190,19 @@
     "aboutLabel": "About",
     "aboutDeveloped": "Developed by Playnest Software",
     "aboutChangelog": "View changelog",
-    "aboutBuildDate": "Built {date}"
+    "aboutBuildDate": "Built {date}",
+    "sectionUpdates": "Updates",
+    "updatesCurrentVersion": "Installed version: v{version}",
+    "updatesCheckButton": "Check for updates now",
+    "updatesChecking": "Checking...",
+    "updatesStatusChecking": "Checking for updates...",
+    "updatesStatusUpToDate": "You've got the latest version installed",
+    "updatesStatusAvailable": "New version available: v{version}, downloading...",
+    "updatesStatusDownloading": "Downloading update... {percent}%",
+    "updatesStatusDownloaded": "The update will install the next time Playnest closes",
+    "updatesStatusError": "Can't check for updates right now",
+    "updatesLastChecked": "Last checked: {time}",
+    "updatesLastCheckedNever": "Not checked yet"
   },
   "update": {
     "available": "A new version of Playnest is available: v{version}",
