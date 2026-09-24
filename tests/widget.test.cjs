@@ -8,16 +8,16 @@ const path = require('node:path');
 
 const store = require('../electron/store.cjs');
 
-test('DEFAULT_SETTINGS includes showDesktopWidget as a boolean, true by default', () => {
+test('DEFAULT_SETTINGS includes showDesktopWidget as a boolean, false by default (opt-in)', () => {
   assert.equal(typeof store.DEFAULT_SETTINGS.showDesktopWidget, 'boolean');
-  assert.equal(store.DEFAULT_SETTINGS.showDesktopWidget, true);
+  assert.equal(store.DEFAULT_SETTINGS.showDesktopWidget, false);
 });
 
 test('src/types.ts and src/App.tsx agree with electron/store.cjs on showDesktopWidget', () => {
   const types = fs.readFileSync(path.join(__dirname, '..', 'src', 'types.ts'), 'utf8');
   const appTsx = fs.readFileSync(path.join(__dirname, '..', 'src', 'App.tsx'), 'utf8');
   assert.match(types, /showDesktopWidget:\s*boolean/, 'Settings interface missing showDesktopWidget');
-  assert.match(appTsx, /showDesktopWidget:\s*true/, 'App.tsx DEFAULT_SETTINGS missing showDesktopWidget');
+  assert.match(appTsx, /showDesktopWidget:\s*false/, 'App.tsx DEFAULT_SETTINGS missing showDesktopWidget');
 });
 
 test('electron/widget.html and electron/widgetPreload.cjs exist', () => {

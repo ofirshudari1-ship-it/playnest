@@ -51,9 +51,10 @@ const DEFAULT_SETTINGS = {
   coverArtBannerDismissed: false,
   // Small always-on-top desktop widget (electron/widget.html, main.cjs
   // createWidget/applyWidgetVisibility) showing the live streak and one-click
-  // quick actions without opening the full app. On by default; toggled from
-  // Settings > System & Startup, and its own close control turns this off too.
-  showDesktopWidget: true
+  // quick actions without opening the full app. Off by default (opt-in);
+  // toggled from Settings > System & Startup, and its own close control
+  // turns this off too.
+  showDesktopWidget: false
 };
 
 const store = new Store({

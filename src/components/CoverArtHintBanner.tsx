@@ -13,12 +13,13 @@ interface Props {
 // (see tests/cover-art-banner.test.cjs — that file re-implements this same
 // check against a couple of fixtures to guard the show/hide contract).
 //
-// Cover art fetching (electron/steamgriddb.cjs fetchCoverForItem) silently
-// no-ops without a personal SteamGridDB key (DEFAULT_STEAMGRID_API_KEY is
-// intentionally empty — no shared key ships with the app). That's correct
-// behavior, but it used to leave the user staring at letter-tile placeholders
-// with zero explanation. This banner is the explanation, shown once until
-// dismissed or until a key is actually saved.
+// Cover art fetching (electron/steamgriddb.cjs fetchCoverForItem) now works
+// out of the box via the shared DEFAULT_STEAMGRID_API_KEY (electron/config.cjs)
+// - most items should get art automatically. This banner still has a real
+// purpose: a shared key can be rate-limited or miss obscure titles, and a
+// personal key (entered here) always takes priority and gives the user
+// their own quota. Shown while any item still lacks art, until dismissed
+// or until a personal key is saved.
 export function shouldShowCoverArtBanner(settings: Settings, library: LibraryItem[]): boolean {
   if (settings.coverArtBannerDismissed) return false;
   if (settings.steamGridApiKey && settings.steamGridApiKey.trim()) return false;
