@@ -26,6 +26,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
   const [updaterStatus, setUpdaterStatus] = useState<UpdaterStatus | null>(null);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [exportingDiagnostics, setExportingDiagnostics] = useState(false);
 
   useEffect(() => {
     window.playnest.appInfo().then(setAppInfo);
@@ -67,6 +68,21 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
     if (!fetchingArt) return undefined;
     return window.playnest.onArtProgress((msg) => setArtLog((prev) => [...prev.slice(-6), msg.message]));
   }, [fetchingArt]);
+
+  async function exportDiagnostics() {
+    setExportingDiagnostics(true);
+    try {
+      const result = await window.playnest.exportDiagnostics();
+      if (result.canceled) return;
+      if (result.ok && result.path) {
+        showToast(t('settings.exportDiagnosticsSuccess', { path: result.path }), 'success');
+      } else {
+        showToast(t('settings.exportDiagnosticsError'), 'error');
+      }
+    } finally {
+      setExportingDiagnostics(false);
+    }
+  }
 
   async function patchSettings(patch: Partial<Settings>) {
     const updated = await window.playnest.setSettings(patch);
@@ -503,6 +519,13 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
             <br />
             <button className="btn-link" onClick={() => window.playnest.openChangelog()}>{t('settings.aboutChangelog')}</button>
           </div>
+        </div>
+
+        <div className="field">
+          <button className="btn btn-secondary" onClick={exportDiagnostics} disabled={exportingDiagnostics}>
+            {exportingDiagnostics ? t('settings.exportDiagnosticsSaving') : t('settings.exportDiagnosticsButton')}
+          </button>
+          <div className="hint" style={{ marginTop: 6 }}>{t('settings.exportDiagnosticsHint')}</div>
         </div>
 
         <details className="settings-details">

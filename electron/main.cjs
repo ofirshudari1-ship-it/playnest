@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, screen, globalShortcut, Notification } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const { exec, spawn, execSync } = require('child_process');
 
 const { autoUpdater } = require('electron-updater');
@@ -10,6 +11,7 @@ const { runFullScan } = require('./scanner.cjs');
 const { fetchCoverForItem, fileToDataUrl } = require('./steamgriddb.cjs');
 const { getHardwareProfile } = require('./hardware.cjs');
 const { DEFAULT_STEAMGRID_API_KEY } = require('./config.cjs');
+const { createZip } = require('./zip.cjs');
 
 // ---- Main-process i18n (tray menu + desktop widget) ----
 // The renderer has its own richer i18n (src/i18n.ts), but the tray menu and
@@ -1478,6 +1480,93 @@ ipcMain.handle('app:info', () => {
     /* packaged builds still work fine without a build date shown */
   }
   return { name: app.getName(), version: app.getVersion(), buildDate };
+});
+
+// ---- Export Diagnostics (Settings > About) ----
+// Bundles everything a support request typically needs into one .zip:
+// the crash/error log (if any), version.json, a redacted copy of the
+// persisted settings, and a small system-info.txt — built with the
+// dependency-free zip.cjs writer rather than pulling in `archiver` for
+// what's a handful of small text/JSON files.
+ipcMain.handle('app:exportDiagnostics', async () => {
+  const defaultName = `Playnest-Diagnostics-${app.getVersion()}-${new Date().toISOString().slice(0, 10)}.zip`;
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: mt('settings.exportDiagnosticsButton'),
+    defaultPath: defaultName,
+    filters: [{ name: 'Zip Archive', extensions: ['zip'] }]
+  });
+  if (result.canceled || !result.filePath) return { ok: false, canceled: true };
+
+  try {
+    const entries = [];
+
+    // 1. App log file(s), if any exist yet (a fresh install may never have
+    // hit an error). Only errorLogPath exists today, but this stays a loop
+    // so a future second log file is picked up without touching this code.
+    for (const logPath of [errorLogPath]) {
+      try {
+        if (fs.existsSync(logPath)) {
+          entries.push({ name: path.basename(logPath), data: fs.readFileSync(logPath) });
+        }
+      } catch {
+        /* a log we can't read is skipped, not fatal to the whole export */
+      }
+    }
+
+    // 2. version.json, as shipped (same file app:info reads above).
+    try {
+      entries.push({ name: 'version.json', data: fs.readFileSync(path.join(__dirname, '..', 'version.json')) });
+    } catch {
+      /* dev checkouts without a synced version.json still export the rest */
+    }
+
+    // 3. Persisted settings, redacted. steamGridApiKey is never included in
+    // plaintext — replaced with a fixed placeholder rather than omitted, so
+    // support can still see *whether* a personal key was set. Belt-and-braces:
+    // the shared DEFAULT_STEAMGRID_API_KEY is never stored in settings in the
+    // first place (see config.cjs/effectiveApiKey), but the final JSON text is
+    // still scanned for it below in case that ever changes.
+    try {
+      const settings = { ...store.getSettings() };
+      if (settings.steamGridApiKey) settings.steamGridApiKey = '[REDACTED]';
+      const bundle = {
+        settings,
+        lastScan: store.get('lastScan'),
+        libraryItemCount: (store.get('library') || []).length
+      };
+      let json = JSON.stringify(bundle, null, 2);
+      if (DEFAULT_STEAMGRID_API_KEY) {
+        json = json.split(DEFAULT_STEAMGRID_API_KEY).join('[REDACTED]');
+      }
+      entries.push({ name: 'settings.json', data: Buffer.from(json, 'utf8') });
+    } catch (err) {
+      logCrash('exportDiagnostics settings', err);
+    }
+
+    // 4. system-info.txt — OS/arch, Electron/Chrome/Node, Playnest version, install path.
+    try {
+      const lines = [
+        `Playnest version: ${app.getVersion()}`,
+        `OS: ${os.type()} ${os.release()} (${process.platform}/${process.arch})`,
+        `Electron: ${process.versions.electron}`,
+        `Chrome: ${process.versions.chrome}`,
+        `Node: ${process.versions.node}`,
+        `Install path: ${app.getAppPath()}`,
+        `User data path: ${app.getPath('userData')}`,
+        `Generated: ${new Date().toISOString()}`
+      ];
+      entries.push({ name: 'system-info.txt', data: Buffer.from(lines.join('\n') + '\n', 'utf8') });
+    } catch (err) {
+      logCrash('exportDiagnostics system-info', err);
+    }
+
+    const zipBuffer = createZip(entries);
+    fs.writeFileSync(result.filePath, zipBuffer);
+    return { ok: true, path: result.filePath };
+  } catch (err) {
+    logCrash('exportDiagnostics', err);
+    return { ok: false, error: String(err?.message || err) };
+  }
 });
 
 // The renderer's first real screen is up (library + settings loaded) — the

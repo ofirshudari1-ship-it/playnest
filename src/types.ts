@@ -166,6 +166,7 @@ declare global {
       removeItems: (ids: string[]) => Promise<{ ok: boolean; removed: number }>;
       appInfo: () => Promise<{ name: string; version: string; buildDate: string | null }>;
       openChangelog: () => Promise<{ ok: boolean }>;
+      exportDiagnostics: () => Promise<{ ok: boolean; path?: string; canceled?: boolean; error?: string }>;
       notifyReady?: () => void;
       exportLibrary: () => Promise<{ ok: boolean; path?: string; error?: string }>;
       importLibrary: () => Promise<{ ok: boolean; imported?: number; error?: string }>;

@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('playnest', {
   removeItems: (ids) => ipcRenderer.invoke('library:removeItems', ids),
   appInfo: () => ipcRenderer.invoke('app:info'),
   openChangelog: () => ipcRenderer.invoke('app:openChangelog'),
+  exportDiagnostics: () => ipcRenderer.invoke('app:exportDiagnostics'),
   // Tells main.cjs the first real screen is rendered so it can close the
   // splash and reveal this window (STANDARDS.md §19.2). Fire-and-forget.
   notifyReady: () => ipcRenderer.send('app:rendererReady'),
