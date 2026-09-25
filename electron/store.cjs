@@ -1,4 +1,6 @@
 const Store = require('electron-store');
+const fs = require('fs');
+const { app } = require('electron');
 
 const DEFAULT_SETTINGS = {
   steamGridApiKey: '',
@@ -77,6 +79,30 @@ const store = new Store({
   }
 });
 
+// Captured once, at module load, before anything has had a chance to write to
+// the config file — true only for a genuinely fresh install/profile with no
+// saved data yet. electron-store creates its JSON file lazily on first write,
+// so its absence here is a reliable first-run signal.
+const isFreshProfile = !fs.existsSync(store.path);
+let freshProfileLanguageResolved = false;
+
+// electron-builder's NSIS `displayLanguageSelector` only changes the language
+// of the INSTALLER's own UI text — it has no supported mechanism (no registry
+// key, no env var, no file) to hand that choice to the app once installed. So
+// there is no real installer-language signal to read here. The best honest
+// cross-platform substitute is Electron's own app.getLocale(), which reflects
+// the Windows display language the user already has. Only used once, on a
+// profile's very first read, so it never overrides a language the user (or an
+// existing profile) has since chosen.
+function detectInstallLanguage() {
+  try {
+    const locale = (app.getLocale() || '').toLowerCase();
+    return locale.startsWith('he') ? 'he' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
 // electron-store only applies `defaults` when a top-level key is entirely missing.
 // A settings object saved by an older build (before a field like groupBy existed)
 // keeps that field permanently undefined otherwise — self-heal it on every read.
@@ -93,7 +119,16 @@ function getSettings() {
     merged.setupWizardSeen = true;
   }
 
-  if (Object.keys(merged).length !== Object.keys(current).length || wasMissingSetupFlag) {
+  let languageDefaulted = false;
+  if (isFreshProfile && !freshProfileLanguageResolved) {
+    freshProfileLanguageResolved = true;
+    if (merged.language === DEFAULT_SETTINGS.language) {
+      merged.language = detectInstallLanguage();
+      languageDefaulted = true;
+    }
+  }
+
+  if (Object.keys(merged).length !== Object.keys(current).length || wasMissingSetupFlag || languageDefaulted) {
     store.set('settings', merged);
   }
   return merged;

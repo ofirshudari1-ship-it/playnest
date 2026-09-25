@@ -225,6 +225,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
               </button>
             ))}
           </div>
+          <div className="hint">{t('settings.appearanceHint')}</div>
         </div>
 
         <div className="field">
@@ -313,6 +314,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
       {collectionNames.length > 0 && (
         <div className="field">
           <label>{t('settings.manageCollections')}</label>
+          <div className="hint" style={{ marginBottom: 10 }}>{t('settings.manageCollectionsHint')}</div>
           <div className="verify-list">
             {collectionNames.map((name) => (
               <div className="verify-list-row" key={name}>

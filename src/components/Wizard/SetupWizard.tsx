@@ -152,6 +152,9 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
             <div className="progress-log">
               {log.map((line, i) => <div key={i}>{line}</div>)}
             </div>
+            <div className="wizard-footer">
+              <button className="btn btn-ghost" onClick={() => setConfirmSkip(true)}>{t('common.skip')}</button>
+            </div>
           </>
         )}
 
