@@ -1,5 +1,13 @@
 export type Category = 'game' | 'application' | 'system';
 
+// A Playnite-style completion/play status — separate from favorites/tags/
+// collections (all of which already existed here): this tracks *progress*
+// through a game, not organization of the library. Stored as an id->status
+// map in Settings.completionStatus (same pattern as favorites/hiddenItemIds/
+// tags), merged onto each LibraryItem at library:get time, and survives
+// rescans automatically because it never lives on the scanned item itself.
+export type CompletionStatus = 'playing' | 'completed' | 'on_hold' | 'dropped' | 'plan_to_play';
+
 export interface LibraryItem {
   id: string;
   name: string;
@@ -22,6 +30,7 @@ export interface LibraryItem {
   lastPlayedAt?: string | null;
   launchCount?: number;
   tags?: string[];
+  completionStatus?: CompletionStatus;
 }
 
 export interface Drive {
@@ -31,7 +40,7 @@ export interface Drive {
   totalGb: number | null;
 }
 
-export type GroupBy = 'none' | 'genre' | 'size' | 'year';
+export type GroupBy = 'none' | 'genre' | 'size' | 'year' | 'status';
 // 'system' follows the OS light/dark setting live; 'dark'/'light' are explicit
 // manual overrides — see STANDARDS.md §3 ("Dark+Light with automatic OS
 // detection + manual switch").
@@ -53,6 +62,21 @@ export interface Settings {
   collections: Record<string, string[]>;
   minimizeToTray: boolean;
   tags: Record<string, string[]>;
+  // Playnite-style completion/play status per item — see CompletionStatus above.
+  // A map (not a field on LibraryItem itself) so it survives a rescan the same
+  // way favorites/tags/collections already do.
+  completionStatus: Record<string, CompletionStatus>;
+  // Library view filter: 'all' shows everything regardless of status, matching
+  // the default before this feature existed. Persisted like the other filter
+  // controls in FilterMenu (sortBy, groupBy, hiddenCategories).
+  statusFilter: CompletionStatus | 'all';
+  // Xbox/PlayStation-style gamepad drives the SAME arrow-key/Enter/Escape
+  // navigation the library grid already supports for keyboard users (see
+  // CategoryRow.tsx onArrowNavigate and useGamepadNavigation.ts) — a lightweight
+  // answer to the "couch mode" controller navigation Playnite's fullscreen
+  // mode offers. On by default; harmless no-op on a PC with no gamepad
+  // connected.
+  controllerNavigationEnabled: boolean;
   filterPresets?: Record<string, { genres?: string[]; minPlaytime?: number; maxSize?: number }>;
   lastVersionCheck?: string;
   // First-run onboarding has been shown (or explicitly skipped) — the wizard
@@ -184,6 +208,9 @@ declare global {
       getRecommendations: (library: LibraryItem[], topCount?: number) => Promise<GameRecommendation[]>;
       toggleTag: (tagName: string, itemId: string) => Promise<Record<string, string[]>>;
       deleteTag: (name: string) => Promise<Record<string, string[]>>;
+      // Sets (or clears, when status is null) a single item's completion status.
+      // Returns the full updated map, mirroring toggleTag/toggleFavorite.
+      setCompletionStatus: (id: string, status: CompletionStatus | null) => Promise<Record<string, CompletionStatus>>;
       checkForUpdates: () => Promise<{ hasUpdate: boolean; latestVersion?: string; downloadUrl?: string }>;
       getStreak: () => Promise<{ currentStreak: number; longestStreak: number; totalActiveDays: number }>;
       getGameMode: () => Promise<boolean>;

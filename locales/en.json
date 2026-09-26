@@ -57,6 +57,9 @@
     "groupByGenre": "Category",
     "groupBySize": "Size",
     "groupByYear": "Release year",
+    "groupByStatus": "Completion status",
+    "statusFilter": "Status",
+    "statusAll": "All statuses",
     "sortBy": "Sort by",
     "sortByName": "Name (A–Z)",
     "sortBySize": "Size (largest first)",
@@ -68,6 +71,20 @@
     "densityComfortable": "Comfortable",
     "densityLarge": "Large",
     "showIn": "Show in \"Everything\""
+  },
+  "status": {
+    "playing": "Playing",
+    "completed": "Completed",
+    "onHold": "On Hold",
+    "planToPlay": "Plan to Play",
+    "dropped": "Dropped",
+    "notPlayed": "Not Played"
+  },
+  "detailModal": {
+    "statusLabel": "Status",
+    "launchCountLabel": "Launches",
+    "launchedOnce": "Once",
+    "launchedTimes": "{count} times"
   },
   "emptyState": {
     "collectionTitle": "This collection is empty",
@@ -174,6 +191,9 @@
     "quickLaunchLabel": "Global Quick-Launch Hotkey",
     "quickLaunchTitle": "Enable Ctrl+Shift+L to jump to Playnest",
     "quickLaunchDesc": "Works even when Playnest isn't focused — brings the window to the front and jumps straight to search, so you can find and launch something without reaching for the taskbar. Silently does nothing if another running app already uses this combination.",
+    "controllerNavLabel": "Controller Navigation",
+    "controllerNavTitle": "Navigate the library with a gamepad",
+    "controllerNavDesc": "Use a connected Xbox or PlayStation controller's D-pad or left stick to move between games, A/Cross to open or launch, B/Circle to go back — the same navigation keyboard users already get. Does nothing if no controller is connected.",
     "desktopWidgetLabel": "Desktop Widget",
     "desktopWidgetTitle": "Show desktop widget",
     "desktopWidgetDesc": "A small always-on-top panel on your desktop showing your play streak, with one-click buttons to open Playnest or launch your last-played game — no need to open the full app. Drag it anywhere; its position is remembered.",

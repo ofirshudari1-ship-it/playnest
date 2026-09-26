@@ -47,6 +47,7 @@ contextBridge.exposeInMainWorld('playnest', {
   getRecommendations: (library, topCount) => ipcRenderer.invoke('library:getRecommendations', library, topCount),
   toggleTag: (tagName, itemId) => ipcRenderer.invoke('item:toggleTag', tagName, itemId),
   deleteTag: (name) => ipcRenderer.invoke('tags:delete', name),
+  setCompletionStatus: (id, status) => ipcRenderer.invoke('item:setCompletionStatus', id, status),
   checkForUpdates: () => ipcRenderer.invoke('app:checkForUpdates'),
   getStreak: () => ipcRenderer.invoke('stats:getStreak'),
   getGameMode: () => ipcRenderer.invoke('system:getGameMode'),

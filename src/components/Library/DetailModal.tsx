@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { HardwareProfile, LibraryItem } from '../../types';
-import { formatBytes, formatPlaytime, timeAgo, sourceLabel, similarItems, performanceVerdict } from '../../helpers';
+import type { CompletionStatus, HardwareProfile, LibraryItem } from '../../types';
+import { formatBytes, formatPlaytime, timeAgo, sourceLabel, similarItems, performanceVerdict, COMPLETION_STATUSES, STATUS_LABEL_KEYS } from '../../helpers';
+import { useTranslation } from '../../i18n';
 import GameCard from './GameCard';
 
 interface Props {
@@ -16,12 +17,14 @@ interface Props {
   onToggleFavorite: (id: string) => void;
   onToggleHidden: (id: string) => void;
   onToggleCollection: (collectionName: string, itemId: string) => void;
+  onSetCompletionStatus: (id: string, status: CompletionStatus | null) => void;
 }
 
 export default function DetailModal({
   item, library, hardware, collections, onClose, onOpenItem, onLaunch, onOpenFolder,
-  onUninstall, onToggleFavorite, onToggleHidden, onToggleCollection
+  onUninstall, onToggleFavorite, onToggleHidden, onToggleCollection, onSetCompletionStatus
 }: Props) {
+  const t = useTranslation();
   const [showCollections, setShowCollections] = useState(false);
   const similar = similarItems(item, library);
   const verdict = item.category === 'game'
@@ -53,6 +56,22 @@ export default function DetailModal({
               <div className="playtime-badge">
                 {formatPlaytime(item.totalPlaytimeMinutes)}
                 {item.lastPlayedAt && ` · last played ${timeAgo(item.lastPlayedAt)}`}
+              </div>
+            )}
+
+            {item.category === 'game' && (
+              <div className="field" style={{ marginTop: 14, marginBottom: 0, maxWidth: 220 }}>
+                <label htmlFor="detail-status-select">{t('detailModal.statusLabel')}</label>
+                <select
+                  id="detail-status-select"
+                  value={item.completionStatus || ''}
+                  onChange={(e) => onSetCompletionStatus(item.id, (e.target.value || null) as CompletionStatus | null)}
+                >
+                  <option value="">{t('status.notPlayed')}</option>
+                  {COMPLETION_STATUSES.map((status) => (
+                    <option key={status} value={status}>{t(STATUS_LABEL_KEYS[status])}</option>
+                  ))}
+                </select>
               </div>
             )}
 
@@ -108,6 +127,12 @@ export default function DetailModal({
             <div className="stat"><div className="label">Install path</div><div className="value" style={{ fontSize: 12 }}>{item.installPath || 'Unknown'}</div></div>
             {item.version && <div className="stat"><div className="label">Version</div><div className="value">{item.version}</div></div>}
             {item.releaseYear && <div className="stat"><div className="label">Release Year</div><div className="value">{item.releaseYear}</div></div>}
+            {!!item.launchCount && (
+              <div className="stat">
+                <div className="label">{t('detailModal.launchCountLabel')}</div>
+                <div className="value">{t(item.launchCount === 1 ? 'detailModal.launchedOnce' : 'detailModal.launchedTimes', { count: item.launchCount })}</div>
+              </div>
+            )}
           </div>
 
           {similar.length > 0 && (

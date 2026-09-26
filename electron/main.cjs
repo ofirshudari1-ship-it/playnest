@@ -889,7 +889,10 @@ ipcMain.handle('drives:list', async () => {
 // played" sort), totalPlaytimeMinutes (Analytics/Insights), releaseYear.
 // Scanner ids are stable content hashes (scanner.cjs makeId), so matching by
 // id is exact.
-const PRESERVED_ITEM_FIELDS = ['addedAt', 'lastPlayedAt', 'totalPlaytimeMinutes', 'releaseYear'];
+// launchCount added alongside the others — without it here, a rescan would
+// silently reset every item's launch count back to zero the same way it used
+// to wipe playtime/lastPlayed before this list existed.
+const PRESERVED_ITEM_FIELDS = ['addedAt', 'lastPlayedAt', 'totalPlaytimeMinutes', 'releaseYear', 'launchCount'];
 
 function carryOverItemHistory(rawItems, previousLibrary, now) {
   const previousById = new Map(previousLibrary.map((i) => [i.id, i]));
@@ -1084,11 +1087,14 @@ function getCoverDataUrl(itemId, userDataPath) {
 ipcMain.handle('library:get', async () => {
   const library = store.get('library');
   const userDataPath = app.getPath('userData');
-  const favorites = new Set(store.getSettings().favorites || []);
+  const settings = store.getSettings();
+  const favorites = new Set(settings.favorites || []);
+  const completionStatus = settings.completionStatus || {};
   return library.map((item) => ({
     ...item,
     coverArt: getCoverDataUrl(item.id, userDataPath),
-    isFavorite: favorites.has(item.id)
+    isFavorite: favorites.has(item.id),
+    completionStatus: completionStatus[item.id] || undefined
   }));
 });
 
@@ -1194,9 +1200,13 @@ function localDateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
+// Also bumps launchCount, which existed on the LibraryItem type before this
+// feature but was never actually incremented anywhere until now.
 function touchLastPlayed(id) {
   const library = store.get('library');
-  store.set('library', library.map((item) => (item.id === id ? { ...item, lastPlayedAt: new Date().toISOString() } : item)));
+  store.set('library', library.map((item) => (item.id === id
+    ? { ...item, lastPlayedAt: new Date().toISOString(), launchCount: (item.launchCount || 0) + 1 }
+    : item)));
 
   const today = localDateKey(new Date());
   const days = store.getActivityDays();
@@ -1400,6 +1410,20 @@ ipcMain.handle('item:toggleFavorite', (event, id) => {
   store.set('settings', { ...settings, favorites: [...favorites] });
   refreshTrayMenu();
   return [...favorites];
+});
+
+// Playnite-style completion/play status (Playing/Completed/On Hold/Dropped/
+// Plan to Play) — a map of id->status, same shape as favorites above, so it
+// survives rescans without needing PRESERVED_ITEM_FIELDS. Passing status=null
+// clears it back to "not set" instead of toggling, since there are more than
+// two states here (unlike toggleFavorite/toggleHidden).
+ipcMain.handle('item:setCompletionStatus', (event, id, status) => {
+  const settings = store.getSettings();
+  const completionStatus = { ...(settings.completionStatus || {}) };
+  if (status) completionStatus[id] = status;
+  else delete completionStatus[id];
+  store.set('settings', { ...settings, completionStatus });
+  return completionStatus;
 });
 
 ipcMain.handle('item:toggleHidden', (event, id) => {

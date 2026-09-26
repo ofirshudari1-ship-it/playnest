@@ -12,6 +12,11 @@ const DEFAULT_SETTINGS = {
   favorites: [],
   hiddenItemIds: [],
   collections: {},
+  // Playnite-style completion/play status (id -> 'playing'|'completed'|'on_hold'|
+  // 'dropped'|'plan_to_play'), same map-of-ids pattern as favorites/tags above —
+  // see src/types.ts CompletionStatus for why it lives here and not on the item.
+  completionStatus: {},
+  statusFilter: 'all',
   // Default changed to true (was false) so closing the window keeps Playnest
   // running in the tray out of the box — the Quit Playnest tray menu item is
   // the unambiguous full-exit path, see main.cjs buildTrayMenu(). Existing
@@ -68,7 +73,12 @@ const DEFAULT_SETTINGS = {
   // an off-switch that starts in its current position. autoDownload itself
   // is NOT gated by this — Playnest always downloads a found update in the
   // background; this setting only controls whether it self-installs on quit.
-  autoInstallUpdates: true
+  autoInstallUpdates: true,
+  // Lets a connected Xbox/PlayStation-style gamepad drive the library grid's
+  // existing keyboard navigation (arrow keys/Enter/Escape) — see
+  // src/hooks/useGamepadNavigation.ts. On by default; it only ever acts when
+  // the Gamepad API reports a connected controller, so it's a no-op otherwise.
+  controllerNavigationEnabled: true
 };
 
 const store = new Store({

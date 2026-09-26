@@ -467,6 +467,24 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
           </div>
         </div>
 
+        <div className="field">
+          <label>{t('settings.controllerNavLabel')}</label>
+          <div className="toggle-row" style={{ padding: 0 }}>
+            <div>
+              <div>{t('settings.controllerNavTitle')}</div>
+              <div className="desc">{t('settings.controllerNavDesc')}</div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.controllerNavigationEnabled}
+                onChange={(e) => patchSettings({ controllerNavigationEnabled: e.target.checked })}
+              />
+              <span className="slider" />
+            </label>
+          </div>
+        </div>
+
         <div className="field" style={{ marginBottom: 0 }}>
           <label>{t('settings.desktopWidgetLabel')}</label>
           <div className="toggle-row" style={{ padding: 0 }}>

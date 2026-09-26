@@ -21,10 +21,11 @@ import PerformanceMode from './components/PerformanceMode';
 import SystemMonitor from './components/SystemMonitor';
 import TabbedView from './components/TabbedView';
 import CoverArtHintBanner from './components/CoverArtHintBanner';
-import type { HardwareProfile, LibraryItem, Settings } from './types';
+import type { CompletionStatus, HardwareProfile, LibraryItem, Settings } from './types';
 import { groupItems, sortItems, computeNeedsAttention } from './helpers';
 import { showToast } from './toast';
 import { useTranslation, setLanguage } from './i18n';
+import { useGamepadNavigation } from './hooks/useGamepadNavigation';
 
 function emptyStateFor(view: ViewKey): { icon: IconName; titleKey: string; hintKey: string } {
   if (view.startsWith('collection:')) {
@@ -52,6 +53,9 @@ const DEFAULT_SETTINGS: Settings = {
   collections: {},
   minimizeToTray: true,
   tags: {},
+  completionStatus: {},
+  statusFilter: 'all',
+  controllerNavigationEnabled: true,
   setupWizardSeen: false,
   gridDensity: 'comfortable',
   quickLaunchHotkeyEnabled: true,
@@ -97,6 +101,12 @@ export default function App() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const t = useTranslation();
+
+  // Lets a connected gamepad drive the same arrow-key/Enter/Escape navigation
+  // the library grid already supports for keyboard users (CategoryRow.tsx) —
+  // see hooks/useGamepadNavigation.ts. Disabled while typing in the search
+  // box or any other text field; the hook itself guards for that.
+  useGamepadNavigation(settings.controllerNavigationEnabled);
 
   async function loadLibrary() {
     const lib = await window.playnest.getLibrary();
@@ -237,25 +247,31 @@ export default function App() {
 
   const searched = search.trim() ? fuse.search(search).map((r) => r.item) : library;
   const nonHidden = searched.filter((i) => !settings.hiddenItemIds.includes(i.id));
+  // Applied on top of every library view (not just "Everything") — a status
+  // filter set to e.g. "Playing" should narrow Favorites/a collection/etc too,
+  // the same way the search box already does across every view.
+  const statusFiltered = settings.statusFilter === 'all'
+    ? nonHidden
+    : nonHidden.filter((i) => i.completionStatus === settings.statusFilter);
 
   const visible = useMemo(() => {
     let result: LibraryItem[];
     if (view.startsWith('collection:')) {
       const name = view.slice('collection:'.length);
       const memberIds = new Set(settings.collections[name] || []);
-      result = nonHidden.filter((i) => memberIds.has(i.id));
+      result = statusFiltered.filter((i) => memberIds.has(i.id));
     } else {
       switch (view) {
-        case 'games': result = nonHidden.filter((i) => i.category === 'game'); break;
-        case 'applications': result = nonHidden.filter((i) => i.category === 'application'); break;
-        case 'favorites': result = nonHidden.filter((i) => i.isFavorite); break;
-        case 'system': result = nonHidden.filter((i) => i.category === 'system'); break;
+        case 'games': result = statusFiltered.filter((i) => i.category === 'game'); break;
+        case 'applications': result = statusFiltered.filter((i) => i.category === 'application'); break;
+        case 'favorites': result = statusFiltered.filter((i) => i.isFavorite); break;
+        case 'system': result = statusFiltered.filter((i) => i.category === 'system'); break;
         case 'hidden': result = searched.filter((i) => settings.hiddenItemIds.includes(i.id)); break;
-        default: result = nonHidden.filter((i) => !settings.hiddenCategories.includes(i.category));
+        default: result = statusFiltered.filter((i) => !settings.hiddenCategories.includes(i.category));
       }
     }
     return sortItems(result, settings.sortBy);
-  }, [nonHidden, searched, view, settings.hiddenCategories, settings.hiddenItemIds, settings.collections, settings.sortBy]);
+  }, [statusFiltered, searched, view, settings.hiddenCategories, settings.hiddenItemIds, settings.collections, settings.sortBy]);
 
   function openItem(item: LibraryItem) {
     if (selectMode) {
@@ -365,6 +381,13 @@ export default function App() {
   async function handleToggleCollection(collectionName: string, itemId: string) {
     const updatedCollections = await window.playnest.toggleCollectionItem(collectionName, itemId);
     setSettings((prev) => ({ ...prev, collections: updatedCollections }));
+  }
+
+  async function handleSetCompletionStatus(id: string, status: CompletionStatus | null) {
+    const updated = await window.playnest.setCompletionStatus(id, status);
+    setSettings((prev) => ({ ...prev, completionStatus: updated }));
+    await loadLibrary(); // re-merge so item.completionStatus (and the open detail modal) reflect it immediately
+    setSelectedItem((prev) => (prev && prev.id === id ? { ...prev, completionStatus: status || undefined } : prev));
   }
 
   function surpriseMe() {
@@ -590,6 +613,7 @@ export default function App() {
           onToggleFavorite={handleToggleFavorite}
           onToggleHidden={handleToggleHidden}
           onToggleCollection={handleToggleCollection}
+          onSetCompletionStatus={handleSetCompletionStatus}
         />
       )}
 

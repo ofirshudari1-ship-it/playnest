@@ -57,6 +57,9 @@
     "groupByGenre": "קטגוריה",
     "groupBySize": "גודל",
     "groupByYear": "שנת יציאה",
+    "groupByStatus": "סטטוס השלמה",
+    "statusFilter": "סטטוס",
+    "statusAll": "כל הסטטוסים",
     "sortBy": "מיון לפי",
     "sortByName": "שם (א-ת)",
     "sortBySize": "גודל (מהגדול לקטן)",
@@ -68,6 +71,20 @@
     "densityComfortable": "רגיל",
     "densityLarge": "גדול",
     "showIn": "הצגה ב\"הכול\""
+  },
+  "status": {
+    "playing": "משחק כרגע",
+    "completed": "הושלם",
+    "onHold": "בהמתנה",
+    "planToPlay": "מתוכנן לשחק",
+    "dropped": "ננטש",
+    "notPlayed": "לא שוחק"
+  },
+  "detailModal": {
+    "statusLabel": "סטטוס",
+    "launchCountLabel": "הפעלות",
+    "launchedOnce": "פעם אחת",
+    "launchedTimes": "{count} פעמים"
   },
   "emptyState": {
     "collectionTitle": "האוסף הזה ריק",
@@ -174,6 +191,9 @@
     "quickLaunchLabel": "מקש קיצור גלובלי",
     "quickLaunchTitle": "הפעלת Ctrl+Shift+L לקפיצה ל-Playnest",
     "quickLaunchDesc": "עובד גם כש-Playnest לא בפוקוס — מביא את החלון קדימה וקופץ ישר לחיפוש, כדי שתוכלו למצוא ולהפעיל משהו בלי להגיע לשורת המשימות. אם צירוף המקשים כבר תפוס על ידי תוכנה אחרת, הפעולה פשוט לא תעשה דבר.",
+    "controllerNavLabel": "ניווט בג'ויסטיק",
+    "controllerNavTitle": "ניווט בספרייה עם ג'ויסטיק",
+    "controllerNavDesc": "ג'ויסטיק מחובר של Xbox או PlayStation מזיז בין המשחקים עם הכיוונים או המקל השמאלי, פותח או מפעיל עם A או Cross, וחוזר אחורה עם B או Circle - בדיוק כמו הניווט שכבר קיים למי שמשתמש במקלדת. אם אין ג'ויסטיק מחובר, זה פשוט לא עושה כלום.",
     "desktopWidgetLabel": "ווידג'ט שולחן עבודה",
     "desktopWidgetTitle": "הצג ווידג'ט שולחן עבודה",
     "desktopWidgetDesc": "פאנל קטן שנשאר תמיד מעל שאר החלונות על שולחן העבודה ומציג את רצף המשחקים שלכם, עם כפתורים לפתיחת Playnest או להפעלת המשחק האחרון שהפעלתם — בלי לפתוח את האפליקציה המלאה. אפשר לגרור אותו לכל מקום; המיקום נשמר.",

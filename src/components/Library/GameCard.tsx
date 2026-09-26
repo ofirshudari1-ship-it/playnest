@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import type { LibraryItem } from '../../types';
-import { sourceLabel, formatBytes, isRecentlyAdded } from '../../helpers';
+import { sourceLabel, formatBytes, isRecentlyAdded, STATUS_ICON, statusLabel } from '../../helpers';
 import { showToast } from '../../toast';
 import { useTranslation } from '../../i18n';
 
@@ -50,11 +50,16 @@ export default function GameCard({ item, onOpen, selectMode, isSelected }: Props
       role="button"
       tabIndex={0}
       aria-pressed={selectMode ? !!isSelected : undefined}
-      aria-label={item.name}
+      aria-label={item.completionStatus ? `${item.name} — ${statusLabel(item.completionStatus)}` : item.name}
     >
       {selectMode && <span className="select-check">{isSelected ? '✓' : ''}</span>}
       <span className="source-badge">{sourceLabel(item.source)}</span>
       {!selectMode && item.isFavorite && <span className="fav-badge">⭐</span>}
+      {!selectMode && item.completionStatus && (
+        <span className={`status-badge status-${item.completionStatus}`} title={statusLabel(item.completionStatus)}>
+          {STATUS_ICON[item.completionStatus]}
+        </span>
+      )}
       {showNewBadge && <span className="new-badge" title={t('card.newTitle')}>{t('card.new')}</span>}
       {item.coverArt ? (
         <>

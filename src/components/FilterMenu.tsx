@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Category, GridDensity, Settings } from '../types';
+import type { Category, CompletionStatus, GridDensity, Settings } from '../types';
 import { useTranslation } from '../i18n';
+import { COMPLETION_STATUSES, STATUS_LABEL_KEYS } from '../helpers';
 
 interface Props {
   settings: Settings;
@@ -54,6 +55,20 @@ export default function FilterMenu({ settings, onChange }: Props) {
               <option value="genre">{t('filterMenu.groupByGenre')}</option>
               <option value="size">{t('filterMenu.groupBySize')}</option>
               <option value="year">{t('filterMenu.groupByYear')}</option>
+              <option value="status">{t('filterMenu.groupByStatus')}</option>
+            </select>
+          </div>
+
+          <div className="field">
+            <label>{t('filterMenu.statusFilter')}</label>
+            <select
+              value={settings.statusFilter}
+              onChange={(e) => onChange({ statusFilter: e.target.value as Settings['statusFilter'] })}
+            >
+              <option value="all">{t('filterMenu.statusAll')}</option>
+              {COMPLETION_STATUSES.map((status: CompletionStatus) => (
+                <option key={status} value={status}>{t(STATUS_LABEL_KEYS[status])}</option>
+              ))}
             </select>
           </div>
 

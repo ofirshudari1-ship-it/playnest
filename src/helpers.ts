@@ -1,4 +1,34 @@
-import type { GroupBy, LibraryItem, Settings } from './types';
+import type { CompletionStatus, GroupBy, LibraryItem, Settings } from './types';
+import { t } from './i18n';
+
+// Single source of truth for the 5 Playnite-style completion statuses — used
+// by the status selector (DetailModal), the status filter (FilterMenu), the
+// card badge (GameCard) and "group by status" (groupItems below) so they can
+// never drift out of sync with each other.
+export const COMPLETION_STATUSES: CompletionStatus[] = ['playing', 'completed', 'on_hold', 'plan_to_play', 'dropped'];
+
+export const STATUS_LABEL_KEYS: Record<CompletionStatus, string> = {
+  playing: 'status.playing',
+  completed: 'status.completed',
+  on_hold: 'status.onHold',
+  plan_to_play: 'status.planToPlay',
+  dropped: 'status.dropped'
+};
+
+// Single glyph per status for the compact card badge — mirrors how fav-badge/
+// new-badge/source-badge on GameCard are all single-glyph corner chips rather
+// than full text labels (there isn't room for text at card size).
+export const STATUS_ICON: Record<CompletionStatus, string> = {
+  playing: '▶',
+  completed: '✓',
+  on_hold: '⏸',
+  plan_to_play: '☰',
+  dropped: '✕'
+};
+
+export function statusLabel(status: CompletionStatus | undefined): string {
+  return status ? t(STATUS_LABEL_KEYS[status]) : t('status.notPlayed');
+}
 
 export function formatBytes(bytes: number | null): string {
   if (!bytes || bytes <= 0) return 'Unknown';
@@ -85,6 +115,7 @@ export function groupItems(items: LibraryItem[], groupBy: GroupBy): ItemGroup[] 
     let key: string;
     if (groupBy === 'size') key = sizeBucket(item.sizeBytes);
     else if (groupBy === 'year') key = item.releaseYear ? String(item.releaseYear) : 'Unknown Year';
+    else if (groupBy === 'status') key = statusLabel(item.completionStatus);
     else key = item.genre || (item.category === 'game' ? 'Other Games' : 'Uncategorized');
 
     if (!buckets.has(key)) buckets.set(key, []);
@@ -94,6 +125,12 @@ export function groupItems(items: LibraryItem[], groupBy: GroupBy): ItemGroup[] 
   let orderedKeys: string[];
   if (groupBy === 'size') {
     orderedKeys = SIZE_BUCKET_ORDER.filter((k) => buckets.has(k));
+  } else if (groupBy === 'status') {
+    // "Playing" first (what you're actively in the middle of), "Not played" last
+    // (the backlog you haven't touched at all) — mirrors Playnite's default
+    // status ordering rather than sorting alphabetically.
+    const order = [...COMPLETION_STATUSES.map(statusLabel), t('status.notPlayed')];
+    orderedKeys = order.filter((k) => buckets.has(k));
   } else if (groupBy === 'year') {
     orderedKeys = [...buckets.keys()].sort((a, b) => {
       if (a === 'Unknown Year') return 1;
