@@ -206,15 +206,28 @@
     "updatesStatusUpToDate": "מותקנת אצלך הגרסה העדכנית ביותר",
     "updatesStatusAvailable": "גרסה חדשה זמינה: v{version}, מוריד עדכון...",
     "updatesStatusDownloading": "מוריד עדכון... {percent}%",
-    "updatesStatusDownloaded": "העדכון יותקן בסגירה הבאה של Playnest",
+    "updatesStatusDownloaded": "העדכון הורד - יותקן בסגירה הבאה של Playnest (יכולה להופיע בקשת הרשאה אחת של Windows)",
+    "updatesStatusDownloadedManual": "העדכון הורד - יש להפעיל מחדש את Playnest כדי להתקין אותו (יכולה להופיע בקשת הרשאה אחת של Windows). ההתקנה האוטומטית בסגירה כבויה למטה.",
     "updatesStatusError": "לא ניתן לבדוק עדכונים כרגע",
     "updatesLastChecked": "נבדק לאחרונה: {time}",
-    "updatesLastCheckedNever": "עדיין לא נבדק"
+    "updatesLastCheckedNever": "עדיין לא נבדק",
+    "autoInstallUpdatesTitle": "התקנת עדכונים אוטומטית בסגירה",
+    "autoInstallUpdatesDesc": "Playnest תמיד מורידה גרסה חדשה ברקע ברגע שהיא נמצאת. כשהאפשרות הזו פעילה, ההתקנה מתבצעת אוטומטית בפעם הבאה שסוגרים את התוכנה, בלי לחכות שתלחצו על הפעלה מחדש. מכיוון ש-Playnest מותקנת בתיקיית Program Files, התקנת עדכון - אוטומטית או ידנית - עשויה להציג בקשת הרשאה אחת של Windows."
   },
   "update": {
     "available": "גרסה חדשה של Playnest זמינה: v{version}",
     "download": "הורדה",
     "dismiss": "לא עכשיו"
+  },
+  "updateReady": {
+    "title": "עדכון ל-Playnest מוכן",
+    "notifBodyAuto": "העדכון לגרסה {version} של Playnest הורד. לחצו כדי להפעיל מחדש ולהתקין עכשיו - יכולה להופיע בקשת הרשאה אחת של Windows.",
+    "notifBodyManual": "העדכון לגרסה {version} של Playnest הורד. לחצו כדי להפעיל מחדש ולהתקין עכשיו - יכולה להופיע בקשת הרשאה אחת של Windows. הוא לא יותקן לבד; ההתקנה האוטומטית בסגירה כבויה בהגדרות.",
+    "dialogMessage": "העדכון לגרסה {version} של Playnest הורד.",
+    "dialogDetailAuto": "אפשר להפעיל מחדש עכשיו כדי להתקין, או שההתקנה תתבצע אוטומטית בפעם הבאה שתסגרו את Playnest. יכולה להופיע בקשת הרשאה אחת של Windows, כי Playnest מותקנת בתיקיית Program Files.",
+    "dialogDetailManual": "אפשר להפעיל מחדש עכשיו כדי להתקין. ההתקנה לא תתבצע אוטומטית בסגירה - האפשרות הזו כבויה בהגדרות. יכולה להופיע בקשת הרשאה אחת של Windows, כי Playnest מותקנת בתיקיית Program Files.",
+    "restartNow": "הפעלה מחדש עכשיו",
+    "later": "אחר כך"
   },
   "coverArtBanner": {
     "text": "לחלק מהפריטים חסרה תמונת עטיפה. הוסיפו מפתח SteamGridDB חינמי בהגדרות כדי להציג תמונות אמיתיות במקום אריחי אותיות.",

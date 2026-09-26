@@ -61,7 +61,8 @@ const DEFAULT_SETTINGS: Settings = {
   trayClickAction: 'single',
   backgroundActivityNotifications: false,
   coverArtBannerDismissed: false,
-  showDesktopWidget: false
+  showDesktopWidget: false,
+  autoInstallUpdates: true
 };
 
 // The branded native splash (electron/splash.html) already enforces the 800ms

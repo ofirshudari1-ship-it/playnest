@@ -263,8 +263,16 @@ process.on('unhandledRejection', (err) => logCrash('MAIN unhandledRejection', er
 // blocks startup and never throws past this module — a failed check (e.g.
 // offline, GitHub unreachable) is logged and silently ignored, same as any
 // other best-effort background task in this app.
+// autoDownload always stays on — downloading a found update in the background
+// is harmless and never touches Program Files, so it isn't gated by the
+// Settings toggle below. autoInstallOnAppQuit (whether it then self-installs
+// the next time the app quits) DOES read from the persisted setting, since
+// that's the half of "auto-update" that actually writes to Program Files —
+// see settings.autoInstallUpdates in electron/store.cjs for the default
+// rationale, and the 'autoInstallUpdates' branch in settings:set below for
+// how a live toggle flip is applied without restarting the app.
 autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.autoInstallOnAppQuit = store.getSettings().autoInstallUpdates;
 
 // Pushes the real electron-updater event stream to the Settings screen (see
 // src/components/Settings/SettingsPanel.tsx "Updates" section) so the silent
@@ -317,6 +325,18 @@ function initAutoUpdater() {
 
   autoUpdater.on('update-downloaded', (info) => {
     sendUpdaterStatus({ state: 'downloaded', version: info?.version });
+    // Playnest's installer is perMachine (Program Files), so the NSIS
+    // installer this quitAndInstall() below runs is built with
+    // `RequestExecutionLevel admin` in its Windows manifest — confirmed by
+    // reading node_modules/electron-updater/out/NsisUpdater.js (doInstall)
+    // and node_modules/app-builder-lib/templates/nsis/installer.nsi. That
+    // means Windows itself shows a UAC consent prompt whenever this installer
+    // runs, silent (/S) or not — it's an OS-level elevation boundary, not
+    // something the /S silent flag or electron-updater's own options can
+    // suppress. Every string shown here says so honestly instead of
+    // promising a fully silent install.
+    const autoInstall = store.getSettings().autoInstallUpdates;
+
     // A dialog attached to a hidden parent window (minimized to tray) has no
     // taskbar entry and is easy to miss entirely — use a tray notification
     // instead whenever the window isn't currently visible. This always fires
@@ -328,8 +348,8 @@ function initAutoUpdater() {
       try {
         if (Notification.isSupported()) {
           const notification = new Notification({
-            title: 'Playnest Update Ready',
-            body: `Playnest ${info.version} has been downloaded. Click to restart and install now.`,
+            title: mt('updateReady.title'),
+            body: mt(autoInstall ? 'updateReady.notifBodyAuto' : 'updateReady.notifBodyManual', { version: info.version }),
             icon: path.join(__dirname, '..', 'assets', 'icon.png')
           });
           notification.on('click', () => {
@@ -341,18 +361,21 @@ function initAutoUpdater() {
       } catch (err) {
         logCrash('autoUpdater notification', err);
       }
-      // Ignoring the notification is fine either way — autoInstallOnAppQuit
-      // still installs it automatically the next time Playnest actually quits.
+      // Ignoring the notification is fine either way when autoInstall is on —
+      // autoInstallOnAppQuit still installs it next time Playnest quits. With
+      // autoInstall off the update simply stays downloaded until the user
+      // restarts manually (from here or from Settings), which is the point
+      // of turning it off.
       return;
     }
 
     dialog
       .showMessageBox(mainWindow, {
         type: 'info',
-        title: 'Playnest Update Ready',
-        message: `Playnest ${info.version} has been downloaded.`,
-        detail: 'Restart now to install the update, or it will install automatically the next time you quit Playnest.',
-        buttons: ['Restart Now', 'Later'],
+        title: mt('updateReady.title'),
+        message: mt('updateReady.dialogMessage', { version: info.version }),
+        detail: mt(autoInstall ? 'updateReady.dialogDetailAuto' : 'updateReady.dialogDetailManual'),
+        buttons: [mt('updateReady.restartNow'), mt('updateReady.later')],
         defaultId: 0,
         cancelId: 1,
       })
@@ -1117,6 +1140,7 @@ ipcMain.handle('settings:set', (event, newSettings) => {
   }
   if ('trayClickAction' in newSettings) applyTrayClickBehavior();
   if ('showDesktopWidget' in newSettings) applyWidgetVisibility(updated.showDesktopWidget);
+  if ('autoInstallUpdates' in newSettings) autoUpdater.autoInstallOnAppQuit = updated.autoInstallUpdates;
   // Tray menu labels and the widget's on-screen text are both built from
   // mt()/getWidgetData() in the main process (see LOCALES above) — a language
   // switch needs both rebuilt/re-pushed here, same as the renderer's own

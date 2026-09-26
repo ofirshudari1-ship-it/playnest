@@ -96,6 +96,11 @@ export interface Settings {
   // live Streak Tracker and quick actions without opening the full app. On
   // by default; see electron/main.cjs createWidget/applyWidgetVisibility.
   showDesktopWidget: boolean;
+  // Whether a downloaded update installs itself automatically on the next
+  // quit (autoUpdater.autoInstallOnAppQuit) vs. staying downloaded until the
+  // user restarts manually from the update-ready dialog/notification. On by
+  // default — see electron/store.cjs DEFAULT_SETTINGS for why.
+  autoInstallUpdates: boolean;
 }
 
 export interface HardwareProfile {

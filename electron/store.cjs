@@ -56,7 +56,19 @@ const DEFAULT_SETTINGS = {
   // quick actions without opening the full app. Off by default (opt-in);
   // toggled from Settings > System & Startup, and its own close control
   // turns this off too.
-  showDesktopWidget: false
+  showDesktopWidget: false,
+  // Controls autoUpdater.autoInstallOnAppQuit (electron/main.cjs) — whether a
+  // downloaded update installs itself automatically the next time Playnest
+  // quits, versus staying downloaded until the user explicitly restarts from
+  // the "Update Ready" dialog/notification. Default ON: this is the behavior
+  // Playnest has always had (autoInstallOnAppQuit was hardcoded true with no
+  // toggle before this setting existed), and defaulting it OFF on an upgrade
+  // would silently change what existing users experience without them ever
+  // seeing an opt-in ask for that change — a bigger regression than shipping
+  // an off-switch that starts in its current position. autoDownload itself
+  // is NOT gated by this — Playnest always downloads a found update in the
+  // background; this setting only controls whether it self-installs on quit.
+  autoInstallUpdates: true
 };
 
 const store = new Store({

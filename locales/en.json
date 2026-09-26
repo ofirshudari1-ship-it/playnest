@@ -206,15 +206,28 @@
     "updatesStatusUpToDate": "You've got the latest version installed",
     "updatesStatusAvailable": "New version available: v{version}, downloading...",
     "updatesStatusDownloading": "Downloading update... {percent}%",
-    "updatesStatusDownloaded": "The update will install the next time Playnest closes",
+    "updatesStatusDownloaded": "Downloaded — will install next time you quit Playnest (you may see one Windows permission prompt)",
+    "updatesStatusDownloadedManual": "Downloaded — restart Playnest to install it (you may see one Windows permission prompt). Automatic install on quit is off below.",
     "updatesStatusError": "Can't check for updates right now",
     "updatesLastChecked": "Last checked: {time}",
-    "updatesLastCheckedNever": "Not checked yet"
+    "updatesLastCheckedNever": "Not checked yet",
+    "autoInstallUpdatesTitle": "Install updates automatically on quit",
+    "autoInstallUpdatesDesc": "Playnest always downloads a new version in the background as soon as one is found. With this on, it installs itself the next time you quit instead of waiting for you to click restart. Because Playnest installs to Program Files, installing an update — automatic or manual — may show one Windows permission prompt."
   },
   "update": {
     "available": "A new version of Playnest is available: v{version}",
     "download": "Download",
     "dismiss": "Not now"
+  },
+  "updateReady": {
+    "title": "Playnest Update Ready",
+    "notifBodyAuto": "Playnest {version} has been downloaded. Click to restart and install now — you may see one Windows permission prompt.",
+    "notifBodyManual": "Playnest {version} has been downloaded. Click to restart and install now — you may see one Windows permission prompt. It won't install on its own; automatic install on quit is off in Settings.",
+    "dialogMessage": "Playnest {version} has been downloaded.",
+    "dialogDetailAuto": "Restart now to install, or it will install automatically the next time you quit Playnest. You may see one Windows permission prompt, since Playnest installs to Program Files.",
+    "dialogDetailManual": "Restart now to install. It won't install automatically when you quit — that's off in Settings. You may see one Windows permission prompt, since Playnest installs to Program Files.",
+    "restartNow": "Restart Now",
+    "later": "Later"
   },
   "coverArtBanner": {
     "text": "Cover art is missing for some items. Add a free SteamGridDB key in Settings to show real box art instead of letter tiles.",

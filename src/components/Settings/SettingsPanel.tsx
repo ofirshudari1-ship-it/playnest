@@ -190,7 +190,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
       case 'downloading':
         return t('settings.updatesStatusDownloading', { percent: updaterStatus.percent });
       case 'downloaded':
-        return t('settings.updatesStatusDownloaded');
+        return t(settings.autoInstallUpdates ? 'settings.updatesStatusDownloaded' : 'settings.updatesStatusDownloadedManual');
       case 'error':
         return t('settings.updatesStatusError');
       default:
@@ -505,6 +505,23 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
             {lastCheckedAt
               ? t('settings.updatesLastChecked', { time: timeAgo(lastCheckedAt) })
               : t('settings.updatesLastCheckedNever')}
+          </div>
+        </div>
+
+        <div className="field" style={{ marginBottom: 0, marginTop: 16 }}>
+          <div className="toggle-row" style={{ padding: 0 }}>
+            <div>
+              <div>{t('settings.autoInstallUpdatesTitle')}</div>
+              <div className="desc">{t('settings.autoInstallUpdatesDesc')}</div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.autoInstallUpdates}
+                onChange={(e) => patchSettings({ autoInstallUpdates: e.target.checked })}
+              />
+              <span className="slider" />
+            </label>
           </div>
         </div>
       </div>
