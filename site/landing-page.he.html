@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playnest — Your Game Library, the Way It Should Be</title>
-    <meta name="description" content="Playnest scans your PC, merges every game and app into one library, and ships a handful of gaming tools — each one doing something real on your machine, no fake data.">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap">
+    <title>Playnest - ספריית המשחקים שלך, כמו שהיא באמת</title>
+    <meta name="description" content="Playnest סורק את המחשב, מארגן את כל המשחקים והתוכנות במקום אחד, ומציע כמה כלי גיימינג - כל אחד מהם עושה משהו אמיתי במחשב שלך, בלי שום דאטה מזויף.">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;700;900&display=swap">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -23,7 +23,7 @@
         }
 
         html, body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Heebo', sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
@@ -297,217 +297,217 @@
     <nav>
         <div class="logo">🎮 Playnest</div>
         <div class="links">
-            <a href="#features">Tools</a>
-            <a href="#honesty">What we cut, and why</a>
-            <a href="#download">Download</a>
-            <a class="lang-switch" href="landing-page.html">עברית</a>
+            <a href="#features">כלים</a>
+            <a href="#honesty">מה הוסר ולמה</a>
+            <a href="#download">הורדה</a>
+            <a class="lang-switch" href="landing-page.html">English</a>
         </div>
     </nav>
 
     <section class="hero">
-        <div class="hero-badge">✓ 0 telemetry · 0 accounts · Everything local</div>
-        <h1>Your game library,<br><span>without the clutter</span></h1>
+        <div class="hero-badge">✓ 0 טלמטריה · 0 חשבונות · הכול מקומי</div>
+        <h1>ספריית המשחקים שלך,<br><span>בלי הבלאגן</span></h1>
         <p class="lede">
-            Playnest scans your PC and merges every game from Steam, Epic, and manual
-            installs into one library — then quietly removes the installer files and
-            duplicates a regular scanner would happily list as games.
+            Playnest סורק את המחשב, מאחד את כל המשחקים מ-Steam, מ-Epic ומהתקנות ידניות
+            לספרייה אחת - ומוחק בעצמו קבצי התקנה וכפילויות שסורק רגיל היה מציג
+            כאילו הם משחקים.
         </p>
         <div class="hero-buttons">
-            <a class="btn btn-primary" data-gh-download="playnest" href="https://github.com/ofirshudari1-ship-it/playnest/releases/latest">⬇ Download Playnest — Free</a>
-            <a class="btn btn-ghost" href="PRODUCT_SPEC.md">📄 How it works, technically</a>
+            <a class="btn btn-primary" data-gh-download="playnest" href="https://github.com/ofirshudari1-ship-it/playnest/releases/latest">⬇ הורד את Playnest - חינם</a>
+            <a class="btn btn-ghost" href="https://github.com/ofirshudari1-ship-it/playnest#readme" target="_blank" rel="noopener">📄 ה-README הטכני ↗</a>
         </div>
-        <p class="hero-note">Windows 10/11 · ~76MB · No account, no sign-up</p>
+        <p class="hero-note">Windows 10/11 · כ-76MB · ללא חשבון, ללא הרשמה</p>
     </section>
 
     <section class="problem">
-        <div class="section-eyebrow">The Problem</div>
-        <h2 class="section-title">Every game library is a mess, by design</h2>
-        <p class="section-sub">Steam only knows about Steam. Epic only knows about Epic. Nobody knows about everything else.</p>
+        <div class="section-eyebrow">הבעיה</div>
+        <h2 class="section-title">כל ספריית משחקים היא בלגן, מהיסוד</h2>
+        <p class="section-sub">Steam יודע רק על Steam. Epic יודע רק על Epic. אף אחד לא יודע על כל השאר.</p>
         <div class="problem-grid">
             <div class="problem-card">
                 <div class="icon">📦</div>
-                <h3>Installer files shown as games</h3>
-                <p>Naive scanners list the setup.exe or uninstaller instead of the game itself — click it, and you get an install wizard, not your game.</p>
+                <h3>קבצי התקנה שמוצגים כמשחקים</h3>
+                <p>סורקים נאיביים מציגים את ה-setup.exe או ה-uninstaller במקום המשחק עצמו - לחיצה פותחת אשף התקנה, לא את המשחק.</p>
             </div>
             <div class="problem-card">
                 <div class="icon">🪞</div>
-                <h3>Duplicates everywhere</h3>
-                <p>The same install shows up in the Windows registry and in a folder scan — without real dedup, one game shows up two or three times.</p>
+                <h3>כפילויות בכל מקום</h3>
+                <p>אותה התקנה מופיעה גם ברישום Windows וגם בסריקת תיקיות - בלי דה-דופ אמיתי, אותו משחק מופיע פעמיים או שלוש.</p>
             </div>
             <div class="problem-card">
                 <div class="icon">🐌</div>
-                <h3>Slow loads because of artwork</h3>
-                <p>Fetching cover art means a network call per item — if the library waits on that, the whole app feels stuck.</p>
+                <h3>טעינה איטית בגלל ה-artwork</h3>
+                <p>הבאת תמונות עטיפה זה קריאת רשת לכל פריט - אם הספרייה מחכה לזה, כל האפליקציה מרגישה תקועה.</p>
             </div>
             <div class="problem-card">
                 <div class="icon">🎭</div>
-                <h3>"Gaming tools" that are just skins</h3>
-                <p>Plenty of similar apps bolt on "Discord integration" or "RGB control" that's really just made-up numbers with no real connection to your system.</p>
+                <h3>"כלי גיימינג" שהם בעצם עיצוב בלבד</h3>
+                <p>הרבה אפליקציות דומות מוסיפות "אינטגרציית Discord" או "בקרת RGB" שהן בסך הכול מספרים מזויפים בלי חיבור אמיתי למערכת.</p>
             </div>
         </div>
     </section>
 
     <section id="how-it-works" class="problem">
-        <div class="section-eyebrow">How It Works</div>
-        <h2 class="section-title">Three steps, no account, no cloud</h2>
-        <p class="section-sub">Playnest runs locally on your machine only. No server, no syncing, no account to sign into.</p>
+        <div class="section-eyebrow">איך זה עובד</div>
+        <h2 class="section-title">שלושה שלבים, בלי חשבון ובלי ענן</h2>
+        <p class="section-sub">Playnest רץ מקומית על המחשב שלך בלבד. אין שרת, אין סנכרון, אין חשבון להתחבר אליו.</p>
         <div class="problem-grid">
             <div class="problem-card">
                 <div class="icon">1️⃣</div>
-                <h3>Scan</h3>
-                <p>During the initial setup wizard, Playnest scans Steam, Epic, the Windows registry, and install folders — filtering out setup/uninstall files and duplicates automatically.</p>
+                <h3>סריקה</h3>
+                <p>באשף ההתקנה הראשוני Playnest סורק את Steam, Epic, רישום Windows ותיקיות התקנה - ומסנן קבצי setup/uninstall וכפילויות באופן אוטומטי.</p>
             </div>
             <div class="problem-card">
                 <div class="icon">2️⃣</div>
-                <h3>One unified library</h3>
-                <p>Every game and app lands in a single view with covers, search, and filters — and clicking launches the actual game, not the installer.</p>
+                <h3>ספרייה מאוחדת</h3>
+                <p>כל המשחקים והתוכנות נכנסים לתצוגה אחת עם עטיפות, חיפוש וסינון - ולחיצה מפעילה את המשחק עצמו, לא את קובץ ההתקנה.</p>
             </div>
             <div class="problem-card">
                 <div class="icon">3️⃣</div>
-                <h3>Stays up to date on its own</h3>
-                <p>A periodic background scan automatically picks up anything new you install, and app updates download in the background via GitHub Releases — no need to come back to this page.</p>
+                <h3>נשאר מעודכן לבד</h3>
+                <p>סריקת רקע תקופתית מוסיפה אוטומטית כל דבר חדש שמתקינים, ועדכוני האפליקציה עצמה יורדים ברקע דרך GitHub Releases - בלי לחזור לאתר הזה.</p>
             </div>
         </div>
     </section>
 
     <section id="features">
-        <div class="section-eyebrow">The Solution</div>
-        <h2 class="section-title">Tools that do something real — no more, no less</h2>
-        <p class="section-sub">Every tool here reads or writes something real on your machine. If we couldn't wire a feature to something real, it didn't make the list.</p>
+        <div class="section-eyebrow">הפתרון</div>
+        <h2 class="section-title">כלים שעושים משהו אמיתי - לא יותר, לא פחות</h2>
+        <p class="section-sub">כל כלי כאן קורא או כותב למשהו אמיתי במחשב שלך. אם לא הצלחנו לחבר תכונה לדבר אמיתי, היא לא נכנסת לרשימה.</p>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🗂️</div>
-                <h3>Smart Library</h3>
-                <p>Scans Steam, Epic, the Windows registry, and manual installs — with real filtering of installer files and duplicates.</p>
-                <span class="real-tag">✓ Real scanner</span>
+                <h3>ספרייה חכמה</h3>
+                <p>סריקת Steam, Epic, רישום Windows והתקנות ידניות - עם סינון אמיתי של קבצי התקנה וכפילויות.</p>
+                <span class="real-tag">✓ סורק אמיתי</span>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🚀</div>
                 <h3>Performance Mode</h3>
-                <p>One page, two real switches: toggling Windows Game Mode in the registry, and switching power plans (power saver / balanced / performance) via powercfg.</p>
-                <span class="real-tag">✓ Real registry + powercfg</span>
+                <p>עמוד אחד, שני מתגים אמיתיים: הפעלה/כיבוי של Windows Game Mode ברישום, והחלפת תוכנית צריכת חשמל (חיסכון / מאוזן / ביצועים) דרך powercfg.</p>
+                <span class="real-tag">✓ Registry + powercfg אמיתיים</span>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔥</div>
                 <h3>Streak Tracker</h3>
-                <p>Counts the days you actually launched something through Playnest — not a random number, a real activity log.</p>
-                <span class="real-tag">✓ Real usage data</span>
+                <p>סופר ימים שבהם באמת הפעלת משהו דרך Playnest - לא מספר רנדומלי, יומן פעילות אמיתי.</p>
+                <span class="real-tag">✓ נתוני שימוש אמיתיים</span>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
                 <h3>System Monitor</h3>
-                <p>Live CPU, memory, and temperature straight from your machine's real sensors — no invented FPS.</p>
-                <span class="real-tag">✓ Real hardware sensors</span>
+                <p>CPU, זיכרון וטמפרטורה בזמן אמת מהחיישנים האמיתיים של המחשב - בלי FPS מומצא.</p>
+                <span class="real-tag">✓ חיישני חומרה אמיתיים</span>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
-                <h3>Analytics & Insights</h3>
-                <p>Playtime, genre breakdowns, and recommendations — all calculated from your actual library, not a sample.</p>
-                <span class="real-tag">✓ Real data from your library</span>
+                <h3>אנליטיקה ותובנות</h3>
+                <p>זמן משחק, פילוח ז'אנרים והמלצות - הכול מחושב מהספרייה האמיתית שלך, לא מדגם.</p>
+                <span class="real-tag">✓ דאטה אמיתי מהספרייה</span>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔄</div>
-                <h3>Automatic background scanning</h3>
-                <p>Set it once (daily/weekly/never) and your library updates itself whenever you install something new — no need to reopen the scan wizard.</p>
-                <span class="real-tag">✓ Local background scanning</span>
+                <h3>סריקה אוטומטית ברקע</h3>
+                <p>מגדירים פעם אחת (יומי/שבועי/אף פעם) והספרייה מתעדכנת לבד כשמתקינים משהו חדש - בלי לפתוח שוב את אשף הסריקה.</p>
+                <span class="real-tag">✓ סריקת רקע מקומית</span>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⌨️</div>
-                <h3>Global keyboard shortcut</h3>
-                <p><code>Ctrl+Shift+L</code> brings Playnest to the front with search focused, from anywhere on your PC — no hunting for the window.</p>
-                <span class="real-tag">✓ Works across all apps</span>
+                <h3>קיצור מקשים גלובלי</h3>
+                <p><code>Ctrl+Shift+L</code> מקפיץ את Playnest לחזית עם פוקוס על החיפוש, מכל מקום במחשב - בלי לחפש את החלון.</p>
+                <span class="real-tag">✓ פעיל בכל האפליקציות</span>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔲</div>
-                <h3>Library display density</h3>
-                <p>Compact / Comfortable / Large — choose how many cards fit on screen, just like Steam.</p>
-                <span class="real-tag">✓ Saved per user</span>
+                <h3>צפיפות תצוגה בספרייה</h3>
+                <p>Compact / Comfortable / Large - בוחרים כמה כרטיסים נכנסים למסך, בדיוק כמו ב-Steam.</p>
+                <span class="real-tag">✓ נשמר לפי משתמש</span>
             </div>
         </div>
     </section>
 
     <section id="honesty" class="honesty">
-        <div class="section-eyebrow">Full Transparency</div>
-        <h2 class="section-title">A previous version had fake tools. We removed them.</h2>
-        <p class="section-sub">Version 3.1.0 shipped 9 "gaming tools" that turned out to be UI only — with no real connection to the system. Instead of leaving them in as decoration, we deleted them outright.</p>
+        <div class="section-eyebrow">שקיפות מלאה</div>
+        <h2 class="section-title">גרסה קודמת כללה כלים מזויפים. הסרנו אותם.</h2>
+        <p class="section-sub">בגרסה 3.1.0 היו 9 "כלי גיימינג" שהתבררו כממשק בלבד - בלי שום חיבור אמיתי למערכת. במקום להשאיר אותם כקישוט, מחקנו אותם לגמרי.</p>
         <div class="honesty-wrap">
             <div class="honesty-row">
                 <div class="removed">Discord Rich Presence, VPN Checker, RGB Control, Streaming Optimizer, Game Recorder</div>
-                <div class="why">Each one showed a permanent "connected" state or random numbers — with no real connection to any API, VPN, RGB hardware, or recording pipeline.</div>
+                <div class="why">כל אחד מהם הראה מצב "מחובר" קבוע או נתונים אקראיים - בלי חיבור אמיתי ל-API, ל-VPN, לחומרת RGB או לצינור הקלטה.</div>
             </div>
             <div class="honesty-row">
                 <div class="removed">AI Gaming Coach, Friend Activity Tracker, Game Comparison, Advanced Statistics</div>
-                <div class="why">"AI advice" and invented friends, prices hardcoded for just three games, and a duplicate stats page showing random numbers on top of the real analytics page that already existed.</div>
+                <div class="why">"עצות AI" וחברים מומצאים, מחירים קבועים בקוד לשלושה משחקים בלבד, ועמוד סטטיסטיקה כפול שהציג מספרים אקראיים על עמוד אנליטיקה אמיתי שכבר קיים.</div>
             </div>
             <div class="honesty-row">
                 <div class="kept">Performance Mode, Streak Tracker, System Monitor</div>
-                <div class="why">Rebuilt to read and write real things — the Windows registry, powercfg, a genuine usage log, and hardware sensors.</div>
+                <div class="why">נבנו מחדש כדי לקרוא ולכתוב לדברים אמיתיים - רישום Windows, powercfg, יומן שימוש אמיתי, וחיישני חומרה.</div>
             </div>
             <div class="honesty-row">
-                <div class="removed">Tools Management (list page)</div>
-                <div class="why">Even real tools can be redundant: the "Tools" page showed a static list of every tool with no interaction — exactly what the sidebar already shows. Removed, and two similarly named tools ("Game Mode" appeared twice in two different places) were merged into one Performance Mode page.</div>
+                <div class="removed">Tools Management (עמוד רשימה)</div>
+                <div class="why">גם כלים אמיתיים יכולים להיות מיותרים: עמוד "Tools" הציג רשימה סטטית של כל הכלים בלי שום אינטראקציה - בדיוק מה שהסיידבר כבר מציג. הוסר, ושני כלים דומים בשם ("Game Mode" הופיע פעמיים בשני מקומות שונים) אוחדו לעמוד Performance Mode אחד.</div>
             </div>
         </div>
     </section>
 
     <section class="stats">
-        <div class="section-eyebrow">By the Numbers</div>
-        <h2 class="section-title">Honest about what's here</h2>
+        <div class="section-eyebrow">במספרים</div>
+        <h2 class="section-title">כנים לגבי מה שיש</h2>
         <div class="stats-grid">
-            <div class="stat-box"><div class="stat-number">8</div><div class="stat-label">tools, one category</div></div>
-            <div class="stat-box"><div class="stat-number">1</div><div class="stat-label">network call (cover art only)</div></div>
-            <div class="stat-box"><div class="stat-number">0</div><div class="stat-label">accounts / sign-ups</div></div>
-            <div class="stat-box"><div class="stat-number">0</div><div class="stat-label">telemetry</div></div>
+            <div class="stat-box"><div class="stat-number">8</div><div class="stat-label">כלים, קטגוריה אחת</div></div>
+            <div class="stat-box"><div class="stat-number">1</div><div class="stat-label">קריאת רשת (עטיפות משחק בלבד)</div></div>
+            <div class="stat-box"><div class="stat-number">0</div><div class="stat-label">חשבונות / הרשמה</div></div>
+            <div class="stat-box"><div class="stat-number">0</div><div class="stat-label">טלמטריה</div></div>
         </div>
     </section>
 
     <section id="auto-update" class="honesty">
-        <div class="section-eyebrow">Automatic Updates</div>
-        <h2 class="section-title">Updates itself — no need to come back here</h2>
-        <p class="section-sub">Starting with version 3.4.4, Playnest automatically checks in the background for a new version on the project's GitHub Releases (electron-updater — the same update technology most serious Electron apps use).</p>
+        <div class="section-eyebrow">עדכונים אוטומטיים</div>
+        <h2 class="section-title">מתעדכן לבד - לא צריך לחזור לכאן</h2>
+        <p class="section-sub">מגרסה 3.4.4 ואילך Playnest בודק אוטומטית ברקע אם יש גרסה חדשה ב-GitHub Releases של הפרויקט (electron-updater, אותה טכנולוגיית עדכונים שמריצות רוב אפליקציות ה-Electron הרציניות).</p>
         <div class="honesty-wrap">
             <div class="honesty-row">
-                <div class="kept">Background check</div>
-                <div class="why">A few seconds after launch, Playnest quietly checks whether a new version is out — without delaying the app or asking the user for anything.</div>
+                <div class="kept">בדיקה ברקע</div>
+                <div class="why">כמה שניות אחרי הפתיחה Playnest בודק בשקט אם יצאה גרסה חדשה - בלי לעכב את האפליקציה ובלי לבקש כלום מהמשתמש.</div>
             </div>
             <div class="honesty-row">
-                <div class="kept">Automatic download + install prompt</div>
-                <div class="why">If there's an update, it downloads in the background, and a short notification appears with "Install now" or "Later" — no forced restart.</div>
+                <div class="kept">הורדה אוטומטית + אישור להתקנה</div>
+                <div class="why">אם יש עדכון, הוא יורד ברקע, ומופיעה הודעה קצרה עם אפשרות "התקן עכשיו" או "מאוחר יותר" - בלי לאלץ הפעלה מחדש.</div>
             </div>
             <div class="honesty-row">
-                <div class="kept">No internet? Nothing breaks</div>
-                <div class="why">If there's no connection or GitHub is unreachable, the check fails silently and logs to a local error log — Playnest keeps working as usual.</div>
+                <div class="kept">אין אינטרנט? לא קרה כלום</div>
+                <div class="why">אם אין חיבור או ש-GitHub לא זמין, הבדיקה נכשלת בשקט ונרשמת ליומן שגיאות מקומי - Playnest ממשיך לעבוד כרגיל.</div>
             </div>
         </div>
     </section>
 
     <section id="version-history" class="stats">
-        <div class="section-eyebrow">Version History</div>
-        <h2 class="section-title">What changed, version by version</h2>
+        <div class="section-eyebrow">היסטוריית גרסאות</div>
+        <h2 class="section-title">מה השתנה, גרסה אחר גרסה</h2>
         <p class="section-sub" style="max-width: 640px; margin: 0 auto 20px;">
-            v3.4.4 — real automatic updates via electron-updater ·
-            v3.4.3 — real welcome/finish pages in the setup wizard + branded-color button ·
-            v3.4.2 — setup wizard with branded graphics ·
-            v3.4.1 and below — stability, dedup, and scan fixes.
+            v3.4.4 - עדכונים אוטומטיים אמיתיים דרך electron-updater ·
+            v3.4.3 - עמודי welcome/finish אמיתיים באשף ההתקנה + כפתור בצבע המותג ·
+            v3.4.2 - אשף התקנה עם גרפיקה ממותגת ·
+            v3.4.1 ומטה - יציבות, דה-דופ ותיקוני סריקה.
         </p>
         <p class="section-sub" style="max-width: 640px; margin: 0 auto;">
-            <a href="../CHANGELOG.md">Full history in CHANGELOG.md ↗</a>
+            <a href="https://github.com/ofirshudari1-ship-it/playnest/releases" target="_blank" rel="noopener">היסטוריית הגרסאות המלאה ב-GitHub ↗</a>
         </p>
     </section>
 
     <section id="download" class="cta-section">
-        <h2>Your library, finally organized</h2>
-        <p>Free, local, no account. Download it, run the setup wizard, and your library appears within seconds.</p>
-        <a class="btn btn-primary" style="padding: 16px 40px; font-size: 17px;" data-gh-download="playnest" href="https://github.com/ofirshudari1-ship-it/playnest/releases/latest">⬇ Download Playnest <span data-gh-version="playnest">v3.18.0</span></a>
+        <h2>הספרייה שלך, מסודרת סוף סוף</h2>
+        <p>חינם, מקומי, בלי חשבון. תוריד, תריץ את אשף ההתקנה, והספרייה שלך תופיע תוך שניות.</p>
+        <a class="btn btn-primary" style="padding: 16px 40px; font-size: 17px;" data-gh-download="playnest" href="https://github.com/ofirshudari1-ship-it/playnest/releases/latest">⬇ הורד את Playnest <span data-gh-version="playnest">v3.18.0</span></a>
+        <p class="hero-note" style="margin-top: 18px;">Windows 10/11 · קובץ התקנה של כ-76MB</p>
     </section>
 
     <footer>
         <div class="footer-links">
-            <a href="PRODUCT_SPEC.md">Product Spec</a>
-            <a href="../CHANGELOG.md">Changelog</a>
-            <a href="BUSINESS_PLAN.md">Business Plan</a>
-            <a href="../README.md">README</a>
-            <a href="landing-page.html">עברית</a>
+            <a href="https://github.com/ofirshudari1-ship-it/playnest#readme" target="_blank" rel="noopener">README</a>
+            <a href="https://github.com/ofirshudari1-ship-it/playnest/releases" target="_blank" rel="noopener">גרסאות</a>
+            <a href="https://github.com/ofirshudari1-ship-it/playnest" target="_blank" rel="noopener">קוד המקור ב-GitHub</a>
+            <a href="landing-page.html">English</a>
         </div>
         <p>&copy; 2026 Playnest Software.</p>
     </footer>
