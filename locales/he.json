@@ -12,7 +12,8 @@
     "rename": "שינוי שם",
     "delete": "מחיקה",
     "yes": "כן",
-    "no": "לא"
+    "no": "לא",
+    "unknown": "לא ידוע"
   },
   "card": {
     "new": "חדש",
@@ -131,7 +132,8 @@
     "enterLibrary": "כניסה לספרייה",
     "skipConfirmTitle": "לדלג על ההתקנה?",
     "skipConfirmBody": "אפשר לסרוק את המחשב בכל שלב מאוחר יותר, דרך ההגדרות. עד אז הספרייה תישאר ריקה.",
-    "skipAnyway": "דלג בכל זאת"
+    "skipAnyway": "דלג בכל זאת",
+    "startingScan": "מתחיל סריקה..."
   },
   "settings": {
     "title": "הגדרות",
@@ -232,7 +234,18 @@
     "updatesLastChecked": "נבדק לאחרונה: {time}",
     "updatesLastCheckedNever": "עדיין לא נבדק",
     "autoInstallUpdatesTitle": "התקנת עדכונים אוטומטית בסגירה",
-    "autoInstallUpdatesDesc": "Playnest תמיד מורידה גרסה חדשה ברקע ברגע שהיא נמצאת. כשהאפשרות הזו פעילה, ההתקנה מתבצעת אוטומטית בפעם הבאה שסוגרים את התוכנה, בלי לחכות שתלחצו על הפעלה מחדש. מכיוון ש-Playnest מותקנת בתיקיית Program Files, התקנת עדכון - אוטומטית או ידנית - עשויה להציג בקשת הרשאה אחת של Windows."
+    "autoInstallUpdatesDesc": "Playnest תמיד מורידה גרסה חדשה ברקע ברגע שהיא נמצאת. כשהאפשרות הזו פעילה, ההתקנה מתבצעת אוטומטית בפעם הבאה שסוגרים את התוכנה, בלי לחכות שתלחצו על הפעלה מחדש. מכיוון ש-Playnest מותקנת בתיקיית Program Files, התקנת עדכון - אוטומטית או ידנית - עשויה להציג בקשת הרשאה אחת של Windows.",
+    "apiKeySavedToast": "מפתח SteamGridDB נשמר.",
+    "artStartingLog": "מתחיל...",
+    "artFetchGenericError": "לא ניתן היה להביא עטיפה.",
+    "artFoundToast": "נמצאו עטיפות ל-{fetched} מתוך {total} פריטים.",
+    "verifyAllGoodToast": "הכול תקין, אין התקנות חסרות.",
+    "verifyFoundStaleToast": "נמצאו {count} פריטים שלא קיימים יותר בדיסק.",
+    "removedStaleToast": "הוסרו {count} פריטים מהספרייה שלכם.",
+    "backupSavedToast": "הגיבוי נשמר בנתיב {path}",
+    "backupRestoredToast": "שוחזרו {count} פריטים מהגיבוי.",
+    "collectionDeletedToast": "\"{name}\" נמחקה.",
+    "aboutVersionLine": "{name} גרסה {version}"
   },
   "update": {
     "available": "גרסה חדשה של Playnest זמינה: v{version}",
@@ -383,7 +396,56 @@
   "trayMenu": {
     "openPlaynest": "פתיחת Playnest",
     "quitPlaynest": "יציאה מ-Playnest",
-    "favorites": "מועדפים"
+    "favorites": "מועדפים",
+    "launchItem": "הפעלת {name}"
+  },
+  "scan": {
+    "lookingSteam": "מחפש ספרייה של Steam...",
+    "lookingEpic": "מחפש ספרייה של Epic Games...",
+    "readingApps": "קורא את רשימת האפליקציות המותקנות...",
+    "scanningDrives": "סורק את הכוננים שנבחרו לתוכנה נוספת...",
+    "checkingPath": "בודק את {path}",
+    "steamParseError": "לא ניתן לקרוא את רשימת ספריות Steam: {error}",
+    "steamManifestSkipped": "דולג על קובץ מניפסט של Steam: {error}",
+    "epicManifestSkipped": "דולג על קובץ מניפסט של Epic: {error}",
+    "foundItems": "נמצאו {count} פריטים.",
+    "foundItemsSkipped": "נמצאו {count} פריטים (דולג על {skipped} רשומות פגומות או לא נגישות).",
+    "completeFetchingArt": "הסריקה הושלמה, מביא עטיפות ברקע..."
+  },
+  "art": {
+    "fetchedProgress": "הובאו עטיפות {done}/{total}",
+    "allHaveArt": "לכל הפריטים יש כבר עטיפה.",
+    "fetchingFor": "מביא עטיפות ל-{count} פריטים...",
+    "checkedProgress": "נבדקו {checked}/{total} (נמצאו {found})",
+    "doneFound": "הסתיים, נמצאו עטיפות ל-{fetched} מתוך {total} פריטים."
+  },
+  "notify": {
+    "newItemsSingular": "נמצא פריט חדש אחד בספרייה שלכם.",
+    "newItemsPlural": "נמצאו {count} פריטים חדשים בספרייה שלכם."
+  },
+  "helpers": {
+    "neverPlayed": "לא שוחק מעולם",
+    "minutesPlayed": "{minutes} דקות משחק",
+    "hoursMinutesPlayed": "{hours} שעות ו-{minutes} דקות משחק",
+    "hoursPlayed": "{hours} שעות משחק",
+    "never": "אף פעם",
+    "justNow": "כרגע",
+    "minAgo": "לפני {count} דקות",
+    "hourAgo": "לפני שעה",
+    "hoursAgo": "לפני {count} שעות",
+    "dayAgo": "לפני יום",
+    "daysAgo": "לפני {count} ימים",
+    "sourceInstalled": "מותקן",
+    "sourceDetected": "זוהה",
+    "sizeBucket50Plus": "50 GB ומעלה",
+    "sizeBucket20to50": "20–50 GB",
+    "sizeBucket5to20": "5–20 GB",
+    "sizeBucket1to5": "1–5 GB",
+    "sizeBucketUnder1": "מתחת ל-1 GB",
+    "sizeBucketUnknown": "גודל לא ידוע",
+    "unknownYear": "שנה לא ידועה",
+    "otherGames": "משחקים אחרים",
+    "uncategorized": "לא מסווג"
   },
   "app": {
     "needsAttention": "דורש תשומת לב: {parts}. בדקו בהגדרות ← תקינות הספרייה.",

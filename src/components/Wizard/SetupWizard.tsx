@@ -61,7 +61,7 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
 
   async function startScan() {
     setStep('scanning');
-    setLog(['Starting scan...']);
+    setLog([t('wizard.startingScan')]);
     const count = await window.playnest.startScan({ drives: [...selected], deepScan });
     setFoundCount(count);
     setStep('done');

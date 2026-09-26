@@ -23,8 +23,59 @@
     Abort
 !macroend
 
+; ============================================================
+; First-run language handoff (installer -> app)
+;
+; electron-builder's NSIS `displayLanguageSelector` only changes the
+; INSTALLER's own UI language — there is no supported mechanism (no
+; registry key, no env var, no file) for that choice to reach the app once
+; installed, so electron/store.cjs's detectInstallLanguage() previously had
+; to fall back to Electron's app.getLocale() (the OS display language) —
+; the best available substitute, but wrong whenever someone's Windows
+; locale differs from the language they explicitly picked on this
+; installer's language-select dialog two screens earlier.
+;
+; $LANGUAGE (1033=English, 1037=Hebrew) is already known here: customInit
+; runs from installer.nsi's Function .onInit right after
+; MUI_LANGDLL_DISPLAY has shown the picker and set it (see
+; node_modules/app-builder-lib/templates/nsis/installer.nsi), and before
+; any files are extracted. Writing electron-store's actual nested JSON
+; (settings.language inside a top-level "settings" object — see
+; DEFAULT_SETTINGS/getSettings in electron/store.cjs) from NSIS string ops
+; is impractical and risks producing an invalid or clobbering config file,
+; so this drops a tiny plain-text marker instead: electron/store.cjs reads
+; it once on first launch, seeds settings.language from it, and deletes it
+; immediately after — the same "write once, never clobber an existing
+; user's saved choice" contract store.cjs already applies to the
+; app.getLocale() fallback, which remains in place as the last resort for
+; the rare case the marker is somehow missing (e.g. a portable copy).
+;
+; Marker path matches electron-store's real on-disk location for this app:
+; userData is $APPDATA\playnest (package.json "name": "playnest" — the same
+; $APPDATA\playnest directory customUnInstall above already targets), and
+; the store's own file there is playnest-library.json (electron-store's
+; `name: 'playnest-library'` option). Only written when that store file
+; does not exist yet, i.e. a genuinely fresh install/profile — an
+; update/reinstall over an existing profile leaves the user's own saved
+; language setting untouched.
+; ============================================================
+
+!macro WriteFirstRunLanguageMarker
+  ${ifNot} ${FileExists} "$APPDATA\playnest\playnest-library.json"
+    StrCpy $9 "en"
+    ${if} $LANGUAGE == 1037
+      StrCpy $9 "he"
+    ${endif}
+    CreateDirectory "$APPDATA\playnest"
+    FileOpen $8 "$APPDATA\playnest\first-run-language.txt" w
+    FileWrite $8 "$9"
+    FileClose $8
+  ${endif}
+!macroend
+
 !macro customInit
   !insertmacro customCheckAppRunning
+  !insertmacro WriteFirstRunLanguageMarker
 !macroend
 
 ; ============================================================

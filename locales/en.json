@@ -12,7 +12,8 @@
     "rename": "Rename",
     "delete": "Delete",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "unknown": "Unknown"
   },
   "card": {
     "new": "NEW",
@@ -131,7 +132,8 @@
     "enterLibrary": "Enter Your Library",
     "skipConfirmTitle": "Skip setup?",
     "skipConfirmBody": "You can scan your PC anytime later from Settings. Your library will be empty until then.",
-    "skipAnyway": "Skip anyway"
+    "skipAnyway": "Skip anyway",
+    "startingScan": "Starting scan..."
   },
   "settings": {
     "title": "Settings",
@@ -232,7 +234,18 @@
     "updatesLastChecked": "Last checked: {time}",
     "updatesLastCheckedNever": "Not checked yet",
     "autoInstallUpdatesTitle": "Install updates automatically on quit",
-    "autoInstallUpdatesDesc": "Playnest always downloads a new version in the background as soon as one is found. With this on, it installs itself the next time you quit instead of waiting for you to click restart. Because Playnest installs to Program Files, installing an update — automatic or manual — may show one Windows permission prompt."
+    "autoInstallUpdatesDesc": "Playnest always downloads a new version in the background as soon as one is found. With this on, it installs itself the next time you quit instead of waiting for you to click restart. Because Playnest installs to Program Files, installing an update — automatic or manual — may show one Windows permission prompt.",
+    "apiKeySavedToast": "SteamGridDB key saved.",
+    "artStartingLog": "Starting...",
+    "artFetchGenericError": "Could not fetch cover art.",
+    "artFoundToast": "Found artwork for {fetched} of {total} items.",
+    "verifyAllGoodToast": "Everything checks out — no missing installs.",
+    "verifyFoundStaleToast": "Found {count} item(s) that no longer exist on disk.",
+    "removedStaleToast": "Removed {count} item(s) from your library.",
+    "backupSavedToast": "Backup saved to {path}",
+    "backupRestoredToast": "Restored {count} item(s) from backup.",
+    "collectionDeletedToast": "Deleted \"{name}\".",
+    "aboutVersionLine": "{name} version {version}"
   },
   "update": {
     "available": "A new version of Playnest is available: v{version}",
@@ -383,7 +396,56 @@
   "trayMenu": {
     "openPlaynest": "Open Playnest",
     "quitPlaynest": "Quit Playnest",
-    "favorites": "Favorites"
+    "favorites": "Favorites",
+    "launchItem": "Launch {name}"
+  },
+  "scan": {
+    "lookingSteam": "Looking for Steam library...",
+    "lookingEpic": "Looking for Epic Games library...",
+    "readingApps": "Reading installed applications...",
+    "scanningDrives": "Scanning selected drives for additional software...",
+    "checkingPath": "Checking {path}",
+    "steamParseError": "Could not parse Steam library list: {error}",
+    "steamManifestSkipped": "Skipped a Steam manifest: {error}",
+    "epicManifestSkipped": "Skipped an Epic manifest: {error}",
+    "foundItems": "Found {count} items.",
+    "foundItemsSkipped": "Found {count} items (skipped {skipped} broken/unreachable entries).",
+    "completeFetchingArt": "Scan complete — fetching artwork in the background..."
+  },
+  "art": {
+    "fetchedProgress": "Fetched artwork {done}/{total}",
+    "allHaveArt": "All items already have cover art.",
+    "fetchingFor": "Fetching cover art for {count} items...",
+    "checkedProgress": "Checked {checked}/{total} (found {found})",
+    "doneFound": "Done — found artwork for {fetched} of {total} items."
+  },
+  "notify": {
+    "newItemsSingular": "Found {count} new item in your library.",
+    "newItemsPlural": "Found {count} new items in your library."
+  },
+  "helpers": {
+    "neverPlayed": "Never played",
+    "minutesPlayed": "{minutes}m played",
+    "hoursMinutesPlayed": "{hours}h {minutes}m played",
+    "hoursPlayed": "{hours}h played",
+    "never": "Never",
+    "justNow": "Just now",
+    "minAgo": "{count} min ago",
+    "hourAgo": "{count} hour ago",
+    "hoursAgo": "{count} hours ago",
+    "dayAgo": "{count} day ago",
+    "daysAgo": "{count} days ago",
+    "sourceInstalled": "Installed",
+    "sourceDetected": "Detected",
+    "sizeBucket50Plus": "50 GB+",
+    "sizeBucket20to50": "20–50 GB",
+    "sizeBucket5to20": "5–20 GB",
+    "sizeBucket1to5": "1–5 GB",
+    "sizeBucketUnder1": "Under 1 GB",
+    "sizeBucketUnknown": "Unknown Size",
+    "unknownYear": "Unknown Year",
+    "otherGames": "Other Games",
+    "uncategorized": "Uncategorized"
   },
   "app": {
     "needsAttention": "Needs attention: {parts}. Check Settings → Library Health.",

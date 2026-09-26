@@ -258,7 +258,7 @@ async function scanSteam(onProgress) {
         }
       }
     } catch (err) {
-      onProgress?.(`Could not parse Steam library list: ${err.message}`);
+      onProgress?.({ key: 'scan.steamParseError', vars: { error: err.message } });
     }
   }
 
@@ -285,7 +285,7 @@ async function scanSteam(onProgress) {
           launchCommand: `steam://rungameid/${parsed.appid}`
         });
       } catch (err) {
-        onProgress?.(`Skipped a Steam manifest: ${err.message}`);
+        onProgress?.({ key: 'scan.steamManifestSkipped', vars: { error: err.message } });
       }
     }
   }
@@ -314,7 +314,7 @@ async function scanEpic(onProgress) {
         launchCommand: null
       });
     } catch (err) {
-      onProgress?.(`Skipped an Epic manifest: ${err.message}`);
+      onProgress?.({ key: 'scan.epicManifestSkipped', vars: { error: err.message } });
     }
   }
   return games;
@@ -425,7 +425,7 @@ async function scanDriveFolders(drives, knownInstallPaths, knownPublishers, onPr
         if (containerFolderNames.has(dir.name.toLowerCase())) continue;
         if (fuzzyPublisherMatch(dir.name, knownPublishers)) continue;
 
-        onProgress?.(`Checking ${fullPath}`);
+        onProgress?.({ key: 'scan.checkingPath', vars: { path: fullPath } });
         let exeMatches = [];
         try {
           exeMatches = fg.sync(['*.exe', '*/*.exe', '*/*/*.exe'], { cwd: fullPath, suppressErrors: true });
@@ -462,19 +462,27 @@ async function scanDriveFolders(drives, knownInstallPaths, knownPublishers, onPr
 }
 
 async function runFullScan({ drives = [], deepScan = false }, onProgress) {
-  onProgress?.('Looking for Steam library...');
+  // onProgress is called with { key, vars } — a translation key + interpolation
+  // vars, never a pre-built string. This file has no access to the user's
+  // language preference (that lives in electron-store, read on the main-process
+  // side), so translating here would silently always render in English. The
+  // caller (electron/main.cjs ipcMain.handle('scan:start')) resolves each key
+  // through the same mt() helper the tray menu and desktop widget already use,
+  // against the current settings.language, right before forwarding it to the
+  // renderer over 'scan:progress'.
+  onProgress?.({ key: 'scan.lookingSteam' });
   const steamGames = await scanSteam(onProgress);
 
-  onProgress?.('Looking for Epic Games library...');
+  onProgress?.({ key: 'scan.lookingEpic' });
   const epicGames = await scanEpic(onProgress);
 
-  onProgress?.('Reading installed applications...');
+  onProgress?.({ key: 'scan.readingApps' });
   const knownPaths = [...steamGames, ...epicGames].map((g) => g.installPath).filter(Boolean);
   const registryItems = await scanRegistryPrograms(knownPaths, onProgress);
 
   let folderItems = [];
   if (deepScan && drives.length) {
-    onProgress?.('Scanning selected drives for additional software...');
+    onProgress?.({ key: 'scan.scanningDrives' });
     const allKnown = [...knownPaths, ...registryItems.map((r) => r.installPath).filter(Boolean)];
     const knownPublishers = registryItems.map((r) => r.publisher).filter((p) => p && p !== 'Unknown');
     folderItems = await scanDriveFolders(drives, allKnown, knownPublishers, onProgress);
@@ -485,7 +493,11 @@ async function runFullScan({ drives = [], deepScan = false }, onProgress) {
   // executable AND can't find the install folder either, it isn't a working shortcut.
   const usable = deduped.filter(isUsableEntry);
   const dropped = deduped.length - usable.length;
-  onProgress?.(dropped > 0 ? `Found ${usable.length} items (skipped ${dropped} broken/unreachable entries).` : `Found ${usable.length} items.`);
+  onProgress?.(
+    dropped > 0
+      ? { key: 'scan.foundItemsSkipped', vars: { count: usable.length, skipped: dropped } }
+      : { key: 'scan.foundItems', vars: { count: usable.length } }
+  );
   return usable;
 }
 

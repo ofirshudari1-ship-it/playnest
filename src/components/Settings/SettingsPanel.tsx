@@ -93,19 +93,19 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
   async function saveKey() {
     await patchSettings({ steamGridApiKey: apiKeyInput });
     setSaved(true);
-    showToast('SteamGridDB key saved.', 'success');
+    showToast(t('settings.apiKeySavedToast'), 'success');
     setTimeout(() => setSaved(false), 2000);
   }
 
   async function fetchArt() {
     setFetchingArt(true);
-    setArtLog(['Starting...']);
+    setArtLog([t('settings.artStartingLog')]);
     const result = await window.playnest.fetchMissingArt();
     if (!result.ok) {
-      setArtLog((prev) => [...prev, result.error || 'Could not fetch cover art.']);
-      showToast(result.error || 'Could not fetch cover art.', 'error');
+      setArtLog((prev) => [...prev, result.error || t('settings.artFetchGenericError')]);
+      showToast(result.error || t('settings.artFetchGenericError'), 'error');
     } else {
-      showToast(`Found artwork for ${result.fetched} of ${result.total} items.`, 'success');
+      showToast(t('settings.artFoundToast', { fetched: result.fetched ?? 0, total: result.total ?? 0 }), 'success');
     }
     setFetchingArt(false);
     onLibraryChanged();
@@ -117,7 +117,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
     setStaleItems(stale);
     setVerifying(false);
     showToast(
-      stale.length === 0 ? 'Everything checks out — no missing installs.' : `Found ${stale.length} item(s) that no longer exist on disk.`,
+      stale.length === 0 ? t('settings.verifyAllGoodToast') : t('settings.verifyFoundStaleToast', { count: stale.length }),
       stale.length === 0 ? 'success' : 'info'
     );
   }
@@ -126,19 +126,19 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
     await window.playnest.removeItems(ids);
     setStaleItems((prev) => (prev ? prev.filter((i) => !ids.includes(i.id)) : prev));
     onLibraryChanged();
-    showToast(`Removed ${ids.length} item(s) from your library.`, 'success');
+    showToast(t('settings.removedStaleToast', { count: ids.length }), 'success');
   }
 
   async function exportBackup() {
     const result = await window.playnest.exportLibrary();
-    if (result.ok) showToast(`Backup saved to ${result.path}`, 'success');
+    if (result.ok) showToast(t('settings.backupSavedToast', { path: result.path ?? '' }), 'success');
     else if (result.error) showToast(result.error, 'error');
   }
 
   async function importBackup() {
     const result = await window.playnest.importLibrary();
     if (result.ok) {
-      showToast(`Restored ${result.imported} item(s) from backup.`, 'success');
+      showToast(t('settings.backupRestoredToast', { count: result.imported ?? 0 }), 'success');
       onLibraryChanged();
       window.playnest.getSettings().then(onSettingsChanged);
     } else if (result.error) {
@@ -149,7 +149,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
   async function deleteCollection(name: string) {
     const updated = await window.playnest.deleteCollection(name);
     onSettingsChanged({ ...settings, collections: updated });
-    showToast(`Deleted "${name}".`, 'success');
+    showToast(t('settings.collectionDeletedToast', { name }), 'success');
   }
 
   async function commitRename() {
@@ -549,7 +549,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
 
         <div className="field">
           <div className="hint">
-            {appInfo?.name || 'Playnest'} version {appInfo?.version || '1.0.0'}
+            {t('settings.aboutVersionLine', { name: appInfo?.name || 'Playnest', version: appInfo?.version || '1.0.0' })}
             {appInfo?.buildDate && <> &middot; {t('settings.aboutBuildDate', { date: appInfo.buildDate })}</>}
             <br />
             {t('settings.aboutDeveloped')} &middot; support@playnest.app

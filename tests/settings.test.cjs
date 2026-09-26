@@ -118,3 +118,40 @@ test('src/types.ts declares trayClickAction and backgroundActivityNotifications,
   assert.match(types, /trayClickAction:\s*'single'\s*\|\s*'double'/);
   assert.match(types, /backgroundActivityNotifications:\s*boolean/);
 });
+
+// --- Installer -> app first-run language handoff ---
+//
+// electron/store.cjs's detectInstallLanguage() and Electron's `app` mock (the
+// npm 'electron' package resolves to a plain path string outside a real
+// Electron runtime, so app.getPath/app.getLocale can't actually be invoked
+// here) mean this can't be exercised end-to-end under `node --test`. Instead,
+// these pin down the two halves of the handoff by source inspection, the same
+// static-assertion pattern the jump-list/tray tests above already use: the
+// NSIS installer writes the marker on a fresh install only, and store.cjs
+// reads-then-deletes that exact marker before falling back to app.getLocale().
+test('build/installer.nsh writes a first-run-language marker on a fresh install only, using $LANGUAGE', () => {
+  const nsh = fs.readFileSync(path.join(__dirname, '..', 'build', 'installer.nsh'), 'utf8');
+  assert.match(nsh, /!macro WriteFirstRunLanguageMarker/, 'Expected a WriteFirstRunLanguageMarker macro');
+  assert.match(nsh, /\$LANGUAGE == 1037/, 'Expected the marker to branch on the NSIS language-selector value (1037 = Hebrew)');
+  assert.match(nsh, /FileOpen \$8 "\$APPDATA\\playnest\\first-run-language\.txt" w/, 'Marker must be written to the same userData dir electron-store uses');
+  assert.match(
+    nsh,
+    /\$\{ifNot\}\s*\$\{FileExists\}\s*"\$APPDATA\\playnest\\playnest-library\.json"[\s\S]*?FileOpen \$8 "\$APPDATA\\playnest\\first-run-language\.txt"/,
+    'Marker must only be written when no existing store file is present, so an update/reinstall never clobbers a saved language choice'
+  );
+  assert.match(nsh, /!insertmacro WriteFirstRunLanguageMarker/, 'customInit must actually call the macro, not just define it');
+});
+
+test('electron/store.cjs consumes the installer marker before falling back to app.getLocale()', () => {
+  const storeSrc = fs.readFileSync(path.join(__dirname, '..', 'electron', 'store.cjs'), 'utf8');
+  assert.match(storeSrc, /first-run-language\.txt/, 'Expected detectInstallLanguage to read the NSIS-written marker file');
+  assert.match(storeSrc, /fs\.unlinkSync\(markerPath\)/, 'Marker must be deleted once consumed, so it is never re-read on a later launch');
+  // Both phrases also appear in the explanatory comment above the function —
+  // scope the ordering check to the function body itself (from its
+  // declaration onward) so that comment can't accidentally satisfy it.
+  const fnStart = storeSrc.indexOf('function detectInstallLanguage');
+  assert.ok(fnStart > -1, 'Expected a detectInstallLanguage function');
+  const markerIdx = storeSrc.indexOf('first-run-language.txt', fnStart);
+  const localeIdx = storeSrc.indexOf('app.getLocale()', fnStart);
+  assert.ok(markerIdx > -1 && localeIdx > -1 && markerIdx < localeIdx, 'The installer marker must be checked before the app.getLocale() fallback, not after');
+});

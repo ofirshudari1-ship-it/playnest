@@ -1,5 +1,6 @@
 const Store = require('electron-store');
 const fs = require('fs');
+const path = require('path');
 const { app } = require('electron');
 
 const DEFAULT_SETTINGS = {
@@ -108,15 +109,35 @@ const store = new Store({
 const isFreshProfile = !fs.existsSync(store.path);
 let freshProfileLanguageResolved = false;
 
-// electron-builder's NSIS `displayLanguageSelector` only changes the language
-// of the INSTALLER's own UI text — it has no supported mechanism (no registry
-// key, no env var, no file) to hand that choice to the app once installed. So
-// there is no real installer-language signal to read here. The best honest
-// cross-platform substitute is Electron's own app.getLocale(), which reflects
-// the Windows display language the user already has. Only used once, on a
-// profile's very first read, so it never overrides a language the user (or an
-// existing profile) has since chosen.
+// The NSIS installer's own language-select dialog sets $LANGUAGE and, since
+// this session, hands that exact choice to the app via a plain-text marker
+// file written once at customInit in build/installer.nsh (see
+// WriteFirstRunLanguageMarker there for why a marker file rather than writing
+// this store's actual JSON directly from NSIS). It lands at the same
+// userData directory electron-store already uses for the real config below,
+// so it's read here, on this profile's very first read, seeded into
+// settings.language, and deleted immediately — never re-read on a later
+// launch, and never overriding a language a returning user (or an existing
+// profile) has already saved.
+//
+// app.getLocale() (the OS display language) remains the fallback for the
+// rare case the marker is missing entirely — e.g. a portable/manually-copied
+// install that never went through the NSIS installer at all.
 function detectInstallLanguage() {
+  try {
+    const markerPath = path.join(app.getPath('userData'), 'first-run-language.txt');
+    if (fs.existsSync(markerPath)) {
+      const marker = fs.readFileSync(markerPath, 'utf8').trim();
+      try {
+        fs.unlinkSync(markerPath);
+      } catch {
+        /* best-effort cleanup — a leftover marker is harmless since it's only ever consumed once per fresh profile */
+      }
+      if (marker === 'he' || marker === 'en') return marker;
+    }
+  } catch {
+    /* fall through to the OS-locale fallback below */
+  }
   try {
     const locale = (app.getLocale() || '').toLowerCase();
     return locale.startsWith('he') ? 'he' : 'en';

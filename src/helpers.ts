@@ -31,7 +31,7 @@ export function statusLabel(status: CompletionStatus | undefined): string {
 }
 
 export function formatBytes(bytes: number | null): string {
-  if (!bytes || bytes <= 0) return 'Unknown';
+  if (!bytes || bytes <= 0) return t('common.unknown');
   const gb = bytes / 1024 / 1024 / 1024;
   if (gb >= 1) return `${gb.toFixed(1)} GB`;
   const mb = bytes / 1024 / 1024;
@@ -39,23 +39,25 @@ export function formatBytes(bytes: number | null): string {
 }
 
 export function formatPlaytime(minutes: number | undefined): string {
-  if (!minutes || minutes <= 0) return 'Never played';
-  if (minutes < 60) return `${minutes}m played`;
+  if (!minutes || minutes <= 0) return t('helpers.neverPlayed');
+  if (minutes < 60) return t('helpers.minutesPlayed', { minutes });
   const hours = Math.floor(minutes / 60);
   const rem = minutes % 60;
-  return rem > 0 ? `${hours}h ${rem}m played` : `${hours}h played`;
+  return rem > 0
+    ? t('helpers.hoursMinutesPlayed', { hours, minutes: rem })
+    : t('helpers.hoursPlayed', { hours });
 }
 
 export function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return 'Never';
+  if (!iso) return t('helpers.never');
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.round(diffMs / 60000);
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes} min ago`;
+  if (minutes < 1) return t('helpers.justNow');
+  if (minutes < 60) return t('helpers.minAgo', { count: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  if (hours < 24) return t(hours === 1 ? 'helpers.hourAgo' : 'helpers.hoursAgo', { count: hours });
   const days = Math.round(hours / 24);
-  return `${days} day${days === 1 ? '' : 's'} ago`;
+  return t(days === 1 ? 'helpers.dayAgo' : 'helpers.daysAgo', { count: days });
 }
 
 const NEW_BADGE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -71,13 +73,16 @@ export function isRecentlyAdded(addedAt: string | undefined): boolean {
   return Date.now() - addedMs < NEW_BADGE_WINDOW_MS;
 }
 
+// Steam/Epic Games/GOG are third-party product names, not UI copy — left as-is
+// regardless of language, same as "Playnest" itself. "Installed"/"Detected"
+// are real UI labels and go through t().
 export function sourceLabel(source: LibraryItem['source']): string {
   switch (source) {
     case 'steam': return 'Steam';
     case 'epic': return 'Epic Games';
     case 'gog': return 'GOG';
-    case 'registry': return 'Installed';
-    case 'folder': return 'Detected';
+    case 'registry': return t('helpers.sourceInstalled');
+    case 'folder': return t('helpers.sourceDetected');
     default: return source;
   }
 }
@@ -96,16 +101,44 @@ export interface ItemGroup {
   items: LibraryItem[];
 }
 
+// Internal, language-independent bucket IDs — never shown to the user directly.
+// Grouping/sorting happens on these fixed IDs; the display label is resolved
+// through t() only once, at the very end (sizeBucketLabel/groupLabel below), so
+// switching language never has to re-key a Map mid-sort and a bucket's identity
+// never depends on which language happened to be active when it was computed.
+const SIZE_UNKNOWN = '__unknown_size__';
+const YEAR_UNKNOWN = '__unknown_year__';
+const GENRE_OTHER_GAMES = '__other_games__';
+const GENRE_UNCATEGORIZED = '__uncategorized__';
+
 function sizeBucket(bytes: number | null): string {
-  if (!bytes || bytes <= 0) return 'Unknown Size';
+  if (!bytes || bytes <= 0) return SIZE_UNKNOWN;
   const gb = bytes / 1024 / 1024 / 1024;
-  if (gb < 1) return 'Under 1 GB';
-  if (gb < 5) return '1–5 GB';
-  if (gb < 20) return '5–20 GB';
-  if (gb < 50) return '20–50 GB';
-  return '50 GB+';
+  if (gb < 1) return 'under1';
+  if (gb < 5) return '1to5';
+  if (gb < 20) return '5to20';
+  if (gb < 50) return '20to50';
+  return '50plus';
 }
-const SIZE_BUCKET_ORDER = ['50 GB+', '20–50 GB', '5–20 GB', '1–5 GB', 'Under 1 GB', 'Unknown Size'];
+const SIZE_BUCKET_ORDER = ['50plus', '20to50', '5to20', '1to5', 'under1', SIZE_UNKNOWN];
+
+const SIZE_BUCKET_LABEL_KEYS: Record<string, string> = {
+  '50plus': 'helpers.sizeBucket50Plus',
+  '20to50': 'helpers.sizeBucket20to50',
+  '5to20': 'helpers.sizeBucket5to20',
+  '1to5': 'helpers.sizeBucket1to5',
+  under1: 'helpers.sizeBucketUnder1',
+  [SIZE_UNKNOWN]: 'helpers.sizeBucketUnknown'
+};
+
+function groupLabel(groupBy: GroupBy, key: string): string {
+  if (groupBy === 'size') return t(SIZE_BUCKET_LABEL_KEYS[key] || key);
+  if (groupBy === 'year') return key === YEAR_UNKNOWN ? t('helpers.unknownYear') : key;
+  if (groupBy === 'status') return key; // already a translated statusLabel() string — see below
+  if (key === GENRE_OTHER_GAMES) return t('helpers.otherGames');
+  if (key === GENRE_UNCATEGORIZED) return t('helpers.uncategorized');
+  return key; // a real genre name (e.g. "RPG") — not app UI copy, left as-is
+}
 
 // Only called when the user has explicitly picked a "group by" — the default library
 // view stays one flat, sortable grid.
@@ -114,9 +147,9 @@ export function groupItems(items: LibraryItem[], groupBy: GroupBy): ItemGroup[] 
   for (const item of items) {
     let key: string;
     if (groupBy === 'size') key = sizeBucket(item.sizeBytes);
-    else if (groupBy === 'year') key = item.releaseYear ? String(item.releaseYear) : 'Unknown Year';
+    else if (groupBy === 'year') key = item.releaseYear ? String(item.releaseYear) : YEAR_UNKNOWN;
     else if (groupBy === 'status') key = statusLabel(item.completionStatus);
-    else key = item.genre || (item.category === 'game' ? 'Other Games' : 'Uncategorized');
+    else key = item.genre || (item.category === 'game' ? GENRE_OTHER_GAMES : GENRE_UNCATEGORIZED);
 
     if (!buckets.has(key)) buckets.set(key, []);
     buckets.get(key)!.push(item);
@@ -133,19 +166,19 @@ export function groupItems(items: LibraryItem[], groupBy: GroupBy): ItemGroup[] 
     orderedKeys = order.filter((k) => buckets.has(k));
   } else if (groupBy === 'year') {
     orderedKeys = [...buckets.keys()].sort((a, b) => {
-      if (a === 'Unknown Year') return 1;
-      if (b === 'Unknown Year') return -1;
+      if (a === YEAR_UNKNOWN) return 1;
+      if (b === YEAR_UNKNOWN) return -1;
       return Number(b) - Number(a);
     });
   } else {
     orderedKeys = [...buckets.keys()].sort((a, b) => {
-      if (a === 'Other Games' || a === 'Uncategorized') return 1;
-      if (b === 'Other Games' || b === 'Uncategorized') return -1;
+      if (a === GENRE_OTHER_GAMES || a === GENRE_UNCATEGORIZED) return 1;
+      if (b === GENRE_OTHER_GAMES || b === GENRE_UNCATEGORIZED) return -1;
       return a.localeCompare(b);
     });
   }
 
-  return orderedKeys.map((label) => ({ label, items: buckets.get(label)! }));
+  return orderedKeys.map((key) => ({ label: groupLabel(groupBy, key), items: buckets.get(key)! }));
 }
 
 export function sortItems(items: LibraryItem[], sortBy: Settings['sortBy']): LibraryItem[] {

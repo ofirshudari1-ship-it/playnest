@@ -711,7 +711,7 @@ function refreshJumpList() {
     app.setJumpList([
       {
         type: 'custom',
-        name: 'Favorites',
+        name: mt('trayMenu.favorites'),
         items: favorites.map((item) => ({
           type: 'task',
           title: item.name,
@@ -722,12 +722,12 @@ function refreshJumpList() {
           args: `--launch=${item.id}`,
           iconPath: item.executable,
           iconIndex: 0,
-          description: `Launch ${item.name}`
+          description: mt('trayMenu.launchItem', { name: item.name })
         }))
       },
       {
         type: 'tasks',
-        items: [{ type: 'task', title: 'Open Playnest', program: process.execPath, args: '', iconPath: process.execPath, iconIndex: 0, description: 'Open Playnest' }]
+        items: [{ type: 'task', title: mt('trayMenu.openPlaynest'), program: process.execPath, args: '', iconPath: process.execPath, iconIndex: 0, description: mt('trayMenu.openPlaynest') }]
       }
     ]);
   } catch (err) {
@@ -922,14 +922,19 @@ function mergeScanResults(rawItems) {
 }
 
 ipcMain.handle('scan:start', async (event, options) => {
-  const send = (message) => event.sender.send('scan:progress', { message });
+  // scanner.cjs's runFullScan reports progress as { key, vars } — a translation
+  // key, not a pre-built string, since it has no access to the user's language
+  // preference. Resolve through the same mt() helper the tray menu/widget use
+  // (reads settings.language) right here, so the wizard's live scan log always
+  // matches the app's current language instead of always showing in English.
+  const send = (progress) => event.sender.send('scan:progress', { message: mt(progress.key, progress.vars) });
 
   const rawItems = await runFullScan(options, send);
   const withTimestamps = mergeScanResults(rawItems);
   // Remembered so a scheduled automatic rescan (see runAutoRescanIfDue) can
   // repeat this same drives/deepScan scope instead of guessing one.
   store.set('lastScanOptions', options);
-  send('Scan complete — fetching artwork in the background...');
+  send({ key: 'scan.completeFetchingArt' });
 
   fetchArtInBackground(event.sender, withTimestamps);
 
@@ -967,7 +972,7 @@ async function runAutoRescanIfDue() {
 
     const added = merged.length - previousCount;
     if (added > 0) {
-      notifyBackgroundActivity('Playnest', `Found ${added} new item${added === 1 ? '' : 's'} in your library.`);
+      notifyBackgroundActivity('Playnest', mt(added === 1 ? 'notify.newItemsSingular' : 'notify.newItemsPlural', { count: added }));
     }
   } catch (err) {
     logCrash('AUTO-RESCAN', err);
@@ -1010,7 +1015,7 @@ async function fetchArtInBackground(sender, items) {
       }
       done++;
       if ((done % 3 === 0 || done === items.length) && !sender.isDestroyed()) {
-        sender.send('art:progress', { message: `Fetched artwork ${done}/${items.length}` });
+        sender.send('art:progress', { message: mt('art.fetchedProgress', { done, total: items.length }) });
         sender.send('library:updated');
       }
     }
@@ -1029,11 +1034,11 @@ ipcMain.handle('art:fetchMissing', async (event) => {
   const missing = library.filter((item) => !fs.existsSync(path.join(userDataPath, 'covers', `${item.id}.jpg`)));
 
   if (missing.length === 0) {
-    send('All items already have cover art.');
+    send(mt('art.allHaveArt'));
     return { ok: true, fetched: 0, total: 0 };
   }
 
-  send(`Fetching cover art for ${missing.length} items...`);
+  send(mt('art.fetchingFor', { count: missing.length }));
   let fetched = 0;
   const missingIds = new Set(missing.map((i) => i.id));
   const releaseYearById = new Map();
@@ -1045,7 +1050,7 @@ ipcMain.handle('art:fetchMissing', async (event) => {
     }
     if (result?.releaseYear) releaseYearById.set(item.id, result.releaseYear);
     if ((fetched + 1) % 5 === 0 || missing.indexOf(item) === missing.length - 1) {
-      send(`Checked ${missing.indexOf(item) + 1}/${missing.length} (found ${fetched})`);
+      send(mt('art.checkedProgress', { checked: missing.indexOf(item) + 1, total: missing.length, found: fetched }));
     }
   }
 
@@ -1058,7 +1063,7 @@ ipcMain.handle('art:fetchMissing', async (event) => {
     store.set('library', updatedLibrary);
   }
 
-  send(`Done — found artwork for ${fetched} of ${missing.length} items.`);
+  send(mt('art.doneFound', { fetched, total: missing.length }));
   return { ok: true, fetched, total: missing.length };
 });
 
