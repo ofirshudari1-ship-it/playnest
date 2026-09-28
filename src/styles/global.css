@@ -1025,6 +1025,27 @@ button:focus-visible {
 .wizard-card h1 { text-align: center; font-size: 24px; margin: 0 0 6px; }
 .wizard-card p.sub { text-align: center; color: var(--text-dim); margin: 0 0 28px; }
 
+/* Supporting illustration on the wizard's welcome step. The source art has its
+   own light background, so it sits on a light card/frame rather than directly
+   on the (dark by default) wizard surface — keeps it crisp in both themes
+   without looking like a mismatched cutout. */
+.wizard-hero {
+  display: flex;
+  justify-content: center;
+  background: #f4f5f8;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 12px);
+  padding: 14px;
+  margin: 0 0 24px;
+}
+.wizard-hero-img {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  border-radius: 8px;
+}
+
 .splash-shell { -webkit-app-region: drag; }
 .splash {
   display: flex;

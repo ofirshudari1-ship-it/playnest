@@ -4,6 +4,7 @@ import Logo from '../Logo';
 import Icon from '../Icon';
 import ConfirmDialog from '../ConfirmDialog';
 import { useTranslation } from '../../i18n';
+import wizardWelcomeImg from '../../assets/onboarding/wizard-welcome.png';
 
 interface Props {
   settings: Settings;
@@ -92,6 +93,9 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
           <>
             <h1>{t('wizard.welcomeTitle')}</h1>
             <p className="sub">{t('wizard.welcomeBody')}</p>
+            <div className="wizard-hero">
+              <img src={wizardWelcomeImg} alt="" className="wizard-hero-img" />
+            </div>
             <div className="wizard-footer">
               <button className="btn btn-ghost" onClick={() => setConfirmSkip(true)}>{t('common.skip')}</button>
               <button className="btn btn-primary" onClick={() => setStep('drives')}>
