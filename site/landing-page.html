@@ -467,7 +467,7 @@
     <section id="auto-update" class="honesty">
         <div class="section-eyebrow">Automatic Updates</div>
         <h2 class="section-title">Updates itself — no need to come back here</h2>
-        <p class="section-sub">Starting with version 3.4.4, Playnest automatically checks in the background for a new version on the project's GitHub Releases (electron-updater — the same update technology most serious Electron apps use).</p>
+        <p class="section-sub">Playnest automatically checks in the background for a new version on the project's GitHub Releases (electron-updater — the same update technology most serious Electron apps use). Since version 3.21.0 it checks a few seconds after launch, then every 6 hours, and again when the PC wakes from sleep — so it stays current even if you never close it.</p>
         <div class="honesty-wrap">
             <div class="honesty-row">
                 <div class="kept">Background check</div>
@@ -475,7 +475,7 @@
             </div>
             <div class="honesty-row">
                 <div class="kept">Automatic download + install prompt</div>
-                <div class="why">If there's an update, it downloads in the background, and a short notification appears with "Install now" or "Later" — no forced restart.</div>
+                <div class="why">If there's an update, it downloads in the background. One prompt per version offers "Restart now" or "Later" (a "Restart to update" item also waits in the tray menu), and by default it installs on its own the next time you quit. Playnest installs for all users in Program Files, so Windows asks for permission once per update.</div>
             </div>
             <div class="honesty-row">
                 <div class="kept">No internet? Nothing breaks</div>
@@ -488,6 +488,8 @@
         <div class="section-eyebrow">Version History</div>
         <h2 class="section-title">What changed, version by version</h2>
         <p class="section-sub" style="max-width: 640px; margin: 0 auto 20px;">
+            v3.21.0 — update checks every 6 hours and after sleep, one restart prompt per version, update log, sturdier error handling ·
+            v3.20.x — completion status, launch counts, gamepad navigation, language consistency ·
             v3.4.4 — real automatic updates via electron-updater ·
             v3.4.3 — real welcome/finish pages in the setup wizard + branded-color button ·
             v3.4.2 — setup wizard with branded graphics ·
