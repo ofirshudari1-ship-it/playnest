@@ -29,15 +29,18 @@ test('main.cjs seeds autoUpdater.autoInstallOnAppQuit from the persisted setting
 
 test('main.cjs applies a live autoInstallUpdates toggle flip from settings:set', () => {
   const main = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.cjs'), 'utf8');
-  assert.match(main, /'autoInstallUpdates' in newSettings\)\s*autoUpdater\.autoInstallOnAppQuit\s*=\s*updated\.autoInstallUpdates/);
+  assert.match(main, /'autoInstallUpdates' in newSettings\)\s*\{\s*autoUpdater\.autoInstallOnAppQuit\s*=\s*updated\.autoInstallUpdates/);
 });
 
-test('main.cjs update-ready dialog and notification copy is honest about the Windows permission prompt for a perMachine install', () => {
+test('main.cjs update-ready dialog and notification copy is honest about the Windows permission prompt for a perMachine install and never shows a Windows toast', () => {
   const main = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.cjs'), 'utf8');
   // Must branch on the live setting rather than always promising a fully automatic install.
   assert.match(main, /const autoInstall = store\.getSettings\(\)\.autoInstallUpdates/);
-  assert.match(main, /updateReady\.notifBodyAuto['"]?\s*:\s*['"]?updateReady\.notifBodyManual/);
   assert.match(main, /updateReady\.dialogDetailAuto['"]?\s*:\s*['"]?updateReady\.dialogDetailManual/);
+  assert.doesNotMatch(main, /checkForUpdatesAndNotify\(/, 'checkForUpdatesAndNotify adds a Windows toast; use checkForUpdates');
+  assert.match(main, /setInterval\([\s\S]*UPDATE_CHECK_INTERVAL_MS/, 'periodic update check missing');
+  assert.match(main, /shouldPromptForVersion\(promptedUpdateVersion/, 'restart prompt must be once per version');
+  assert.match(main, /quitAndInstall\(true, true\)/, 'restart must be silent + relaunch');
 });
 
 test('locales/en.json and locales/he.json define the autoInstallUpdates toggle copy and updateReady dialog/notification strings', () => {
@@ -49,10 +52,11 @@ test('locales/en.json and locales/he.json define the autoInstallUpdates toggle c
     assert.match(dict.settings.autoInstallUpdatesDesc, /Windows|windows/i, 'Description should mention the Windows permission prompt honestly');
     assert.ok(dict.settings.updatesStatusDownloadedManual);
     assert.ok(dict.updateReady, 'Expected an updateReady locale section');
-    for (const key of ['title', 'notifBodyAuto', 'notifBodyManual', 'dialogMessage', 'dialogDetailAuto', 'dialogDetailManual', 'restartNow', 'later']) {
+    for (const key of ['title', 'dialogMessage', 'dialogDetailAuto', 'dialogDetailManual', 'restartNow', 'later']) {
       assert.ok(dict.updateReady[key], `updateReady.${key} missing`);
     }
   }
+  assert.ok(en.trayMenu.restartToUpdate && he.trayMenu.restartToUpdate, 'trayMenu.restartToUpdate missing');
   // No literal em-dash in the new Hebrew strings (hebrew-copywriting rule).
   const heJoined = [he.settings.autoInstallUpdatesDesc, ...Object.values(he.updateReady)].join(' ');
   assert.ok(!heJoined.includes('—'), 'Hebrew copy must use a plain hyphen, never an em-dash');

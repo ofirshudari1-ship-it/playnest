@@ -264,7 +264,12 @@ async function scanSteam(onProgress) {
 
   for (const lib of libraries) {
     if (!fs.existsSync(lib)) continue;
-    const manifests = fs.readdirSync(lib).filter((f) => /^appmanifest_\d+\.acf$/.test(f));
+    let manifests = [];
+    try {
+      manifests = fs.readdirSync(lib).filter((f) => /^appmanifest_\d+\.acf$/.test(f));
+    } catch {
+      continue; // library drive unplugged / unreadable between existsSync and readdir: skip it, keep scanning
+    }
     for (const manifestFile of manifests) {
       try {
         const raw = fs.readFileSync(path.join(lib, manifestFile), 'utf8');
@@ -296,7 +301,12 @@ async function scanEpic(onProgress) {
   const games = [];
   const manifestDir = path.join(process.env.PROGRAMDATA || 'C:\\ProgramData', 'Epic', 'EpicGamesLauncher', 'Data', 'Manifests');
   if (!fs.existsSync(manifestDir)) return games;
-  const files = fs.readdirSync(manifestDir).filter((f) => f.endsWith('.item'));
+  let files = [];
+  try {
+    files = fs.readdirSync(manifestDir).filter((f) => f.endsWith('.item'));
+  } catch {
+    return games; // Epic manifests folder unreadable: report no Epic games instead of failing the whole scan
+  }
   for (const file of files) {
     try {
       const data = JSON.parse(fs.readFileSync(path.join(manifestDir, file), 'utf8'));

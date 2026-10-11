@@ -254,11 +254,9 @@
   },
   "updateReady": {
     "title": "Playnest Update Ready",
-    "notifBodyAuto": "Playnest {version} has been downloaded. Click to restart and install now — you may see one Windows permission prompt.",
-    "notifBodyManual": "Playnest {version} has been downloaded. Click to restart and install now — you may see one Windows permission prompt. It won't install on its own; automatic install on quit is off in Settings.",
     "dialogMessage": "Playnest {version} has been downloaded.",
-    "dialogDetailAuto": "Restart now to install, or it will install automatically the next time you quit Playnest. You may see one Windows permission prompt, since Playnest installs to Program Files.",
-    "dialogDetailManual": "Restart now to install. It won't install automatically when you quit — that's off in Settings. You may see one Windows permission prompt, since Playnest installs to Program Files.",
+    "dialogDetailAuto": "Restart now to install, or it installs automatically the next time you quit Playnest. Windows asks for permission once (the UAC prompt), because Playnest is installed for all users in Program Files.",
+    "dialogDetailManual": "Restart now to install. It will not install on its own when you quit - that is off in Settings. Windows asks for permission once (the UAC prompt), because Playnest is installed for all users in Program Files.",
     "restartNow": "Restart Now",
     "later": "Later"
   },
@@ -396,6 +394,7 @@
   "trayMenu": {
     "openPlaynest": "Open Playnest",
     "quitPlaynest": "Quit Playnest",
+    "restartToUpdate": "Restart to update to v{version}",
     "favorites": "Favorites",
     "launchItem": "Launch {name}"
   },

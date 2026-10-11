@@ -254,11 +254,9 @@
   },
   "updateReady": {
     "title": "עדכון ל-Playnest מוכן",
-    "notifBodyAuto": "העדכון לגרסה {version} של Playnest הורד. לחצו כדי להפעיל מחדש ולהתקין עכשיו - יכולה להופיע בקשת הרשאה אחת של Windows.",
-    "notifBodyManual": "העדכון לגרסה {version} של Playnest הורד. לחצו כדי להפעיל מחדש ולהתקין עכשיו - יכולה להופיע בקשת הרשאה אחת של Windows. הוא לא יותקן לבד; ההתקנה האוטומטית בסגירה כבויה בהגדרות.",
     "dialogMessage": "העדכון לגרסה {version} של Playnest הורד.",
-    "dialogDetailAuto": "אפשר להפעיל מחדש עכשיו כדי להתקין, או שההתקנה תתבצע אוטומטית בפעם הבאה שתסגרו את Playnest. יכולה להופיע בקשת הרשאה אחת של Windows, כי Playnest מותקנת בתיקיית Program Files.",
-    "dialogDetailManual": "אפשר להפעיל מחדש עכשיו כדי להתקין. ההתקנה לא תתבצע אוטומטית בסגירה - האפשרות הזו כבויה בהגדרות. יכולה להופיע בקשת הרשאה אחת של Windows, כי Playnest מותקנת בתיקיית Program Files.",
+    "dialogDetailAuto": "אפשר להפעיל מחדש עכשיו כדי להתקין, או שההתקנה תתבצע אוטומטית בפעם הבאה שתסגרו את Playnest. Windows תבקש אישור פעם אחת (חלון UAC), כי Playnest מותקנת לכל המשתמשים בתיקיית Program Files.",
+    "dialogDetailManual": "אפשר להפעיל מחדש עכשיו כדי להתקין. ההתקנה לא תתבצע אוטומטית בסגירה - האפשרות הזו כבויה בהגדרות. Windows תבקש אישור פעם אחת (חלון UAC), כי Playnest מותקנת לכל המשתמשים בתיקיית Program Files.",
     "restartNow": "הפעלה מחדש עכשיו",
     "later": "אחר כך"
   },
@@ -396,6 +394,7 @@
   "trayMenu": {
     "openPlaynest": "פתיחת Playnest",
     "quitPlaynest": "יציאה מ-Playnest",
+    "restartToUpdate": "הפעלה מחדש לעדכון ל-v{version}",
     "favorites": "מועדפים",
     "launchItem": "הפעלת {name}"
   },

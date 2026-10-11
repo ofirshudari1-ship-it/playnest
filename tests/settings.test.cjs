@@ -106,9 +106,9 @@ test('main.cjs builds a real Windows jump-list via app.setJumpList and wires --l
   assert.match(main, /second-instance',\s*\(event,\s*argv\)\s*=>\s*\{[\s\S]*?launchFromArgv\(argv\)/, "second-instance handler must forward argv into launchFromArgv");
 });
 
-test('main.cjs shows a system notification for a downloaded update when the window is hidden, and gates the background-activity notification behind the opt-in setting', () => {
+test('main.cjs defers the update prompt while the window is hidden (no toast), and gates the background-activity notification behind the opt-in setting', () => {
   const main = fs.readFileSync(path.join(__dirname, '..', 'electron', 'main.cjs'), 'utf8');
-  assert.match(main, /windowHidden/, 'Expected update-downloaded to branch on whether the window is currently visible');
+  assert.match(main, /function maybePromptForUpdate[\s\S]*?isVisible\(\)/, 'Expected the update prompt to wait for a visible window');
   assert.match(main, /function notifyBackgroundActivity/, 'Expected a notifyBackgroundActivity helper');
   assert.match(main, /if\s*\(!store\.getSettings\(\)\.backgroundActivityNotifications\)\s*return;/, 'notifyBackgroundActivity must be gated behind the opt-in setting');
 });

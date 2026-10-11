@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, screen, globalShortcut, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Tray, Menu, nativeImage, dialog, screen, globalShortcut, Notification, powerMonitor } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -7,6 +7,7 @@ const { exec, spawn, execSync } = require('child_process');
 const { autoUpdater } = require('electron-updater');
 
 const store = require('./store.cjs');
+const { UPDATE_CHECK_INTERVAL_MS, FIRST_CHECK_DELAY_MS, shouldRunPeriodicCheck, shouldPromptForVersion, isCheckOverdue } = require('./update-schedule.cjs');
 const { runFullScan } = require('./scanner.cjs');
 const { fetchCoverForItem, fileToDataUrl } = require('./steamgriddb.cjs');
 const { getHardwareProfile } = require('./hardware.cjs');
@@ -274,6 +275,81 @@ process.on('unhandledRejection', (err) => logCrash('MAIN unhandledRejection', er
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = store.getSettings().autoInstallUpdates;
 
+// ---- Update lifecycle (v3.21.0) ----
+// Playnest used to check ONCE per launch (checkForUpdatesAndNotify, which also added its own
+// Windows toast) - a session that stayed open, or a launch closed before the ~85MB download
+// finished, never got updated. Now: first check ~5s after launch, then every 6h (and after
+// wake-from-sleep), no Windows toast, one restart prompt per downloaded version, a tray item
+// while an update is waiting, and a log of the whole flow in <userData>/updater.log.
+let updaterState = 'idle'; // idle | checking | downloading | ready
+let lastUpdateCheckAt = 0;
+let downloadedVersion = null; // set while an update is downloaded and waiting to install
+let promptedUpdateVersion = null; // restart prompt already shown for this version
+let periodicUpdateTimer = null;
+const updaterLogPath = path.join(app.getPath('userData'), 'updater.log');
+function logUpdate(message) {
+  try {
+    try {
+      if (fs.statSync(updaterLogPath).size > 200 * 1024) fs.renameSync(updaterLogPath, updaterLogPath + '.old');
+    } catch { /* no log yet */ }
+    fs.appendFileSync(updaterLogPath, `${new Date().toISOString()} ${message}\n`);
+  } catch { /* logging must never break the updater */ }
+}
+autoUpdater.logger = {
+  info: (m) => logUpdate(`info ${m}`),
+  warn: (m) => logUpdate(`warn ${m}`),
+  error: (m) => logUpdate(`error ${m}`),
+  debug: () => {}
+};
+
+// Restarts into the installer: silent NSIS + relaunch afterwards. Playnest is a per-machine
+// install (Program Files), so Windows shows ONE UAC prompt here; that cannot be removed without
+// moving to a per-user install (see .claude/upgrade/AUDIT-2026-10-12.md).
+function installUpdateNow() {
+  try {
+    logUpdate(`installUpdateNow ${downloadedVersion}`);
+    isQuitting = true;
+    autoUpdater.quitAndInstall(true, true);
+  } catch (err) {
+    isQuitting = false;
+    logCrash('autoUpdater quitAndInstall', err);
+  }
+}
+
+function runUpdateCheck(reason) {
+  try {
+    logUpdate(`check (${reason})`);
+    Promise.resolve(autoUpdater.checkForUpdates()).catch((err) => logUpdate(`${reason} check rejected: ${err?.message || err}`));
+  } catch (err) {
+    logUpdate(`${reason} check threw: ${err?.message || err}`);
+  }
+}
+
+// Shown at most once per downloaded version, and only while the main window is actually visible
+// (a dialog on a hidden window is easy to miss). If the window is hidden the prompt waits for the
+// next time it is shown; the tray menu also carries a "Restart to update" item meanwhile.
+function maybePromptForUpdate() {
+  if (!downloadedVersion || !shouldPromptForVersion(promptedUpdateVersion, downloadedVersion)) return;
+  if (!mainWindow || mainWindow.isDestroyed() || !mainWindow.isVisible() || mainWindow.isMinimized()) return;
+  const version = downloadedVersion;
+  promptedUpdateVersion = version;
+  const autoInstall = store.getSettings().autoInstallUpdates;
+  dialog
+    .showMessageBox(mainWindow, {
+      type: 'info',
+      title: mt('updateReady.title'),
+      message: mt('updateReady.dialogMessage', { version }),
+      detail: mt(autoInstall ? 'updateReady.dialogDetailAuto' : 'updateReady.dialogDetailManual'),
+      buttons: [mt('updateReady.restartNow'), mt('updateReady.later')],
+      defaultId: 0,
+      cancelId: 1,
+    })
+    .then(({ response }) => {
+      if (response === 0) installUpdateNow();
+    })
+    .catch((err) => logCrash('autoUpdater dialog', err));
+}
+
 // Pushes the real electron-updater event stream to the Settings screen (see
 // src/components/Settings/SettingsPanel.tsx "Updates" section) so the silent
 // background updater above has a visible, checkable status instead of being
@@ -302,20 +378,26 @@ function recordUpdateCheckTime() {
 // status to show rather than a silently dead button. Only the *automatic*
 // startup check below is gated to packaged builds.
 autoUpdater.on('checking-for-update', () => {
+  updaterState = 'checking';
+  lastUpdateCheckAt = Date.now();
   sendUpdaterStatus({ state: 'checking' });
 });
 autoUpdater.on('update-available', (info) => {
   recordUpdateCheckTime();
+  updaterState = 'downloading';
+  logUpdate(`update available: ${info?.version}`);
   sendUpdaterStatus({ state: 'available', version: info?.version });
 });
 autoUpdater.on('update-not-available', () => {
   recordUpdateCheckTime();
+  if (updaterState !== 'ready') updaterState = 'idle';
   sendUpdaterStatus({ state: 'not-available' });
 });
 autoUpdater.on('download-progress', (progress) => {
   sendUpdaterStatus({ state: 'downloading', percent: Math.round(progress?.percent || 0) });
 });
 autoUpdater.on('error', (err) => {
+  if (updaterState !== 'ready') updaterState = 'idle';
   logCrash('autoUpdater', err);
   sendUpdaterStatus({ state: 'error', message: err?.message || String(err) });
 });
@@ -324,74 +406,34 @@ function initAutoUpdater() {
   if (isDev) return; // dev builds have no packaged app.asar / no update feed to hit
 
   autoUpdater.on('update-downloaded', (info) => {
-    sendUpdaterStatus({ state: 'downloaded', version: info?.version });
-    // Playnest's installer is perMachine (Program Files), so the NSIS
-    // installer this quitAndInstall() below runs is built with
-    // `RequestExecutionLevel admin` in its Windows manifest — confirmed by
-    // reading node_modules/electron-updater/out/NsisUpdater.js (doInstall)
-    // and node_modules/app-builder-lib/templates/nsis/installer.nsi. That
-    // means Windows itself shows a UAC consent prompt whenever this installer
-    // runs, silent (/S) or not — it's an OS-level elevation boundary, not
-    // something the /S silent flag or electron-updater's own options can
-    // suppress. Every string shown here says so honestly instead of
-    // promising a fully silent install.
-    const autoInstall = store.getSettings().autoInstallUpdates;
-
-    // A dialog attached to a hidden parent window (minimized to tray) has no
-    // taskbar entry and is easy to miss entirely — use a tray notification
-    // instead whenever the window isn't currently visible. This always fires
-    // regardless of the opt-in backgroundActivityNotifications setting below,
-    // since a missed update prompt isn't "background noise", it's the only
-    // way the user finds out a restart-to-install is available right now.
-    const windowHidden = !mainWindow || mainWindow.isDestroyed() || !mainWindow.isVisible();
-    if (windowHidden) {
-      try {
-        if (Notification.isSupported()) {
-          const notification = new Notification({
-            title: mt('updateReady.title'),
-            body: mt(autoInstall ? 'updateReady.notifBodyAuto' : 'updateReady.notifBodyManual', { version: info.version }),
-            icon: path.join(__dirname, '..', 'assets', 'icon.png')
-          });
-          notification.on('click', () => {
-            isQuitting = true;
-            autoUpdater.quitAndInstall();
-          });
-          notification.show();
-        }
-      } catch (err) {
-        logCrash('autoUpdater notification', err);
-      }
-      // Ignoring the notification is fine either way when autoInstall is on —
-      // autoInstallOnAppQuit still installs it next time Playnest quits. With
-      // autoInstall off the update simply stays downloaded until the user
-      // restarts manually (from here or from Settings), which is the point
-      // of turning it off.
-      return;
-    }
-
-    dialog
-      .showMessageBox(mainWindow, {
-        type: 'info',
-        title: mt('updateReady.title'),
-        message: mt('updateReady.dialogMessage', { version: info.version }),
-        detail: mt(autoInstall ? 'updateReady.dialogDetailAuto' : 'updateReady.dialogDetailManual'),
-        buttons: [mt('updateReady.restartNow'), mt('updateReady.later')],
-        defaultId: 0,
-        cancelId: 1,
-      })
-      .then(({ response }) => {
-        if (response === 0) {
-          isQuitting = true;
-          autoUpdater.quitAndInstall();
-        }
-      })
-      .catch((err) => logCrash('autoUpdater dialog', err));
+    updaterState = 'ready';
+    downloadedVersion = info?.version || null;
+    logUpdate(`update downloaded: ${downloadedVersion}`);
+    sendUpdaterStatus({ state: 'downloaded', version: downloadedVersion });
+    refreshTrayMenu();
+    // Playnest's installer is perMachine (Program Files) and its NSIS manifest requests admin, so
+    // Windows shows one UAC consent prompt whenever the installer runs, silent (/S) or not. We
+    // deliberately do NOT install unattended while the user is away: an unanswered UAC prompt
+    // would leave the app closed without an update. Instead: install on quit (setting, default
+    // on), a restart prompt once per version, and a tray item for sessions that stay open.
+    maybePromptForUpdate();
   });
 
+  // First check shortly after launch, then every 6h for as long as the process lives.
+  runUpdateCheck('startup');
+  if (periodicUpdateTimer) clearInterval(periodicUpdateTimer);
+  periodicUpdateTimer = setInterval(() => {
+    if (shouldRunPeriodicCheck(updaterState)) runUpdateCheck('periodic');
+  }, UPDATE_CHECK_INTERVAL_MS);
+  if (periodicUpdateTimer.unref) periodicUpdateTimer.unref();
+
+  // Timers do not run while the PC sleeps: re-check on wake if the last check is overdue.
   try {
-    autoUpdater.checkForUpdatesAndNotify();
+    powerMonitor.on('resume', () => {
+      if (shouldRunPeriodicCheck(updaterState) && isCheckOverdue(lastUpdateCheckAt, Date.now())) runUpdateCheck('resume');
+    });
   } catch (err) {
-    logCrash('autoUpdater checkForUpdatesAndNotify', err);
+    logCrash('autoUpdater powerMonitor', err);
   }
 }
 
@@ -548,6 +590,7 @@ function createWindow() {
   // hidden to tray above) so it can be garbage-collected — window-all-closed
   // quits the whole process on Windows anyway, but this keeps the pattern
   // correct per STANDARDS.md 11.9 rather than relying on process exit alone.
+  mainWindow.on('show', () => setTimeout(maybePromptForUpdate, 1500));
   mainWindow.on('closed', () => {
     mainWindow = null;
     pendingReveal = null;
@@ -677,6 +720,9 @@ function buildTrayMenu() {
 
   return Menu.buildFromTemplate([
     { label: mt('trayMenu.openPlaynest'), click: () => showMainWindow() },
+    ...(downloadedVersion
+      ? [{ label: mt('trayMenu.restartToUpdate', { version: downloadedVersion }), click: () => installUpdateNow() }]
+      : []),
     ...(favorites.length
       ? [
           { type: 'separator' },
@@ -822,7 +868,7 @@ if (!gotSingleInstanceLock) {
     setInterval(runAutoRescanIfDue, AUTO_RESCAN_POLL_MS);
     // Non-blocking; give the window a few seconds to settle before hitting
     // the network so first-launch feels snappy.
-    setTimeout(initAutoUpdater, 5000);
+    setTimeout(initAutoUpdater, FIRST_CHECK_DELAY_MS);
   });
 }
 
@@ -1043,7 +1089,13 @@ ipcMain.handle('art:fetchMissing', async (event) => {
   const missingIds = new Set(missing.map((i) => i.id));
   const releaseYearById = new Map();
   for (const item of missing) {
-    const result = await fetchCoverForItem(effectiveApiKey(settings), item, userDataPath);
+    let result = null;
+    try {
+      result = await fetchCoverForItem(effectiveApiKey(settings), item, userDataPath);
+    } catch (err) {
+      // One bad lookup (network, bad API key, disk) must not abort the whole batch.
+      logCrash('art:fetchMissing item', err);
+    }
     if (result?.coverPath) {
       fetched++;
       coverDataUrlCache.delete(item.id); // see the cache note above library:get
@@ -1151,7 +1203,14 @@ ipcMain.handle('settings:set', (event, newSettings) => {
   }
   if ('trayClickAction' in newSettings) applyTrayClickBehavior();
   if ('showDesktopWidget' in newSettings) applyWidgetVisibility(updated.showDesktopWidget);
-  if ('autoInstallUpdates' in newSettings) autoUpdater.autoInstallOnAppQuit = updated.autoInstallUpdates;
+  if ('autoInstallUpdates' in newSettings) {
+    autoUpdater.autoInstallOnAppQuit = updated.autoInstallUpdates;
+    // electron-updater registers its quit handler only when a download finishes with the flag on;
+    // turning the toggle on afterwards must register it for an already-downloaded update too.
+    if (updated.autoInstallUpdates && downloadedVersion && typeof autoUpdater.addQuitHandler === 'function') {
+      try { autoUpdater.addQuitHandler(); } catch (err) { logCrash('autoUpdater addQuitHandler', err); }
+    }
+  }
   // Tray menu labels and the widget's on-screen text are both built from
   // mt()/getWidgetData() in the main process (see LOCALES above) — a language
   // switch needs both rebuilt/re-pushed here, same as the renderer's own
@@ -1501,7 +1560,12 @@ ipcMain.handle('library:export', async () => {
     library: store.get('library'),
     settings: store.getSettings()
   };
-  fs.writeFileSync(result.filePath, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(result.filePath, JSON.stringify(data, null, 2));
+  } catch (err) {
+    logCrash('library:export write', err);
+    return { ok: false, error: err?.message || String(err) };
+  }
   return { ok: true, path: result.filePath };
 });
 
