@@ -12,15 +12,29 @@
 ; script — no need to hardcode "Playnest.exe" here.
 
 !macro customCheckAppRunning
+  ; Interactive install/uninstall: ask the user to close the app (Retry/Cancel).
+  ; Silent auto-update (/S, started by electron-updater while the old app is still quitting, its
+  ; helper processes can linger for a moment): never pop a dialog nobody sees - wait up to ~20s for
+  ; the process to exit, then abort quietly (the downloaded update stays and installs next time).
+  StrCpy $5 0
   retry_check:
   nsExec::ExecToStack 'tasklist /FI "IMAGENAME eq ${APP_EXECUTABLE_FILENAME}" /NH'
   Pop $0
   Pop $1
   StrLen $2 "${APP_EXECUTABLE_FILENAME}"
   StrCpy $3 $1 $2
-  StrCmp $3 "${APP_EXECUTABLE_FILENAME}" 0 +3
+  StrCmp $3 "${APP_EXECUTABLE_FILENAME}" 0 check_done
+    IfSilent 0 ask_user
+      IntOp $5 $5 + 1
+      IntCmp $5 40 silent_give_up 0 silent_give_up
+      Sleep 500
+      Goto retry_check
+    silent_give_up:
+      Abort
+    ask_user:
     MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Playnest is currently running.$\r$\nPlease close it before continuing." IDRETRY retry_check
     Abort
+  check_done:
 !macroend
 
 ; ============================================================
