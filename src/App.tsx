@@ -21,6 +21,7 @@ import PerformanceMode from './components/PerformanceMode';
 import SystemMonitor from './components/SystemMonitor';
 import TabbedView from './components/TabbedView';
 import CoverArtHintBanner from './components/CoverArtHintBanner';
+import CommandPalette, { type PaletteAction } from './components/CommandPalette';
 import type { CompletionStatus, HardwareProfile, LibraryItem, Settings } from './types';
 import { groupItems, sortItems, computeNeedsAttention } from './helpers';
 import { showToast } from './toast';
@@ -85,6 +86,7 @@ function applyTheme(theme: Settings['theme']) {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [view, setView] = useState<ViewKey>('all');
   const [search, setSearch] = useState('');
@@ -207,8 +209,13 @@ export default function App() {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const modKey = isMac ? e.metaKey : e.ctrlKey;
 
-      // Ctrl/Cmd + K: Focus search
+      // Ctrl/Cmd + K: Command palette
       if (modKey && e.key === 'k') {
+        e.preventDefault();
+        setShowPalette((v) => !v);
+      }
+      // Ctrl/Cmd + F: Focus search
+      else if (modKey && e.key === 'f') {
         e.preventDefault();
         searchInputRef.current?.focus();
       }
@@ -445,6 +452,18 @@ export default function App() {
     );
   }
 
+  const paletteActions: PaletteAction[] = [
+    { id: 'a:all', label: t('palette.goLibrary'), run: () => setView('all') },
+    { id: 'a:games', label: t('palette.goGames'), run: () => setView('games') },
+    { id: 'a:fav', label: t('palette.goFavorites'), run: () => setView('favorites') },
+    { id: 'a:perf', label: t('palette.goPerformance'), run: () => setView('performance-hub') },
+    { id: 'a:ins', label: t('palette.goInsights'), run: () => setView('insights-hub') },
+    { id: 'a:sys', label: t('palette.goSystem'), run: () => setView('system-hub') },
+    { id: 'a:set', label: t('palette.goSettings'), run: () => setView('settings') },
+    { id: 'a:theme', label: t('palette.toggleTheme'), run: () => updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' }) },
+    { id: 'a:help', label: t('palette.showHelp'), run: () => setShowHelp(true) },
+    { id: 'a:wiz', label: t('palette.rescan'), run: () => setShowWizard(true) },
+  ];
   const groupBy = settings.groupBy || 'none';
   const groups = groupBy !== 'none' ? groupItems(visible, groupBy) : null;
   // A whitelist, not a blacklist — every new non-library view (a tool/settings page)
@@ -597,6 +616,16 @@ export default function App() {
           <button className="btn btn-danger" disabled={selectedIds.size === 0} onClick={() => setConfirmBulkUninstall(true)}>{t('app.uninstallAction')}</button>
           <button className="btn btn-secondary" onClick={exitSelectMode}>{t('app.doneAction')}</button>
         </div>
+      )}
+
+      {showPalette && (
+        <CommandPalette
+          library={library}
+          actions={paletteActions}
+          hiddenIds={settings.hiddenItemIds}
+          onLaunch={(item) => handleAction('launch', item.id)}
+          onClose={() => setShowPalette(false)}
+        />
       )}
 
       {selectedItem && (

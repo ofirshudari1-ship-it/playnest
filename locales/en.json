@@ -133,10 +133,32 @@
     "skipConfirmTitle": "Skip setup?",
     "skipConfirmBody": "You can scan your PC anytime later from Settings. Your library will be empty until then.",
     "skipAnyway": "Skip anyway",
-    "startingScan": "Starting scan..."
+    "startingScan": "Starting scan...",
+    "scanAll": "Scan my whole PC",
+    "chooseDrives": "Choose drives",
+    "hideDrives": "Hide drive options",
+    "stepOf": "Step {n} of 3"
+  },
+  "palette": {
+    "title": "Command palette",
+    "placeholder": "Search games or type a command…",
+    "empty": "Nothing matches.",
+    "launch": "Launch",
+    "action": "Go",
+    "goLibrary": "Open library",
+    "goGames": "Open games",
+    "goFavorites": "Open favorites",
+    "goPerformance": "Open performance tools",
+    "goInsights": "Open insights",
+    "goSystem": "Open system tools",
+    "goSettings": "Open settings",
+    "toggleTheme": "Toggle light / dark theme",
+    "rescan": "Run setup wizard again",
+    "showHelp": "Show keyboard shortcuts"
   },
   "settings": {
     "title": "Settings",
+    "searchPlaceholder": "Search settings…",
     "statTotalItems": "Total Items",
     "statGames": "Games",
     "statPlaytime": "Total Playtime",

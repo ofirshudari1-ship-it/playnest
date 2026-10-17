@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 
 const SHORTCUTS = [
-  { key: 'Ctrl+K', desc: 'Focus search bar' },
+  { key: 'Ctrl+K', desc: 'Command palette (launch, navigate, settings)' },
+  { key: 'Ctrl+F', desc: 'Focus search bar' },
   { key: 'Ctrl+N', desc: 'Create new collection' },
   { key: 'Ctrl+T', desc: 'Toggle dark/light theme' },
   { key: 'Ctrl+/', desc: 'Show this help menu' },
@@ -48,7 +49,7 @@ export default function HelpOverlay({ open, onClose }: HelpOverlayProps) {
           <div className="help-tips">
             <h3>💡 Pro Tips</h3>
             <ul>
-              <li>Press <kbd>Ctrl+K</kbd> to search, then type to find games instantly</li>
+              <li>Press <kbd>Ctrl+K</kbd> to launch any game or jump to any screen instantly</li>
               <li>Create collections with <kbd>Ctrl+N</kbd> to organize your library your way</li>
               <li>Use <kbd>Ctrl+T</kbd> to switch between dark and light themes</li>
               <li>Right-click on game cards for quick actions</li>

@@ -38,6 +38,23 @@ async function resolveSgdbGame(apiKey, item) {
   return null;
 }
 
+async function fetchSteamCdnCover(item, destPath) {
+  if (!item.steamAppId) return null;
+  const urls = [
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${item.steamAppId}/library_600x900.jpg`,
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${item.steamAppId}/header.jpg`
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      fs.writeFileSync(destPath, Buffer.from(await res.arrayBuffer()));
+      return destPath;
+    } catch { /* try next */ }
+  }
+  return null;
+}
+
 // Returns { coverPath, releaseYear } on success (releaseYear may be null/undefined if
 // unknown or if the cover was already cached from a previous run), or null if nothing
 // was found at all.
@@ -47,6 +64,9 @@ async function fetchCoverForItem(apiKey, item, userDataPath) {
   if (fs.existsSync(cachedPath)) {
     return { coverPath: cachedPath };
   }
+  // Free path, no key needed: Steam's public CDN serves portrait art by app id.
+  const steamCover = await fetchSteamCdnCover(item, cachedPath);
+  if (steamCover) return { coverPath: steamCover };
   if (!apiKey) return null;
 
   try {

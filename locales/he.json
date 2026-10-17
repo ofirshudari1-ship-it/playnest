@@ -133,10 +133,32 @@
     "skipConfirmTitle": "לדלג על ההתקנה?",
     "skipConfirmBody": "אפשר לסרוק את המחשב בכל שלב מאוחר יותר, דרך ההגדרות. עד אז הספרייה תישאר ריקה.",
     "skipAnyway": "דלג בכל זאת",
-    "startingScan": "מתחיל סריקה..."
+    "scanAll": "סרקו את כל המחשב",
+    "chooseDrives": "בחירת כוננים",
+    "hideDrives": "הסתרת אפשרויות כוננים",
+    "stepOf": "שלב {n} מתוך 3",
+    "startingScan":"מתחיל סריקה..."
+  },
+  "palette": {
+    "title": "לוח פקודות",
+    "placeholder": "חפשו משחק או הקלידו פקודה…",
+    "empty": "אין תוצאות.",
+    "launch": "הפעלה",
+    "action": "מעבר",
+    "goLibrary": "פתיחת הספרייה",
+    "goGames": "פתיחת משחקים",
+    "goFavorites": "פתיחת מועדפים",
+    "goPerformance": "פתיחת כלי ביצועים",
+    "goInsights": "פתיחת תובנות",
+    "goSystem": "פתיחת כלי מערכת",
+    "goSettings": "פתיחת הגדרות",
+    "toggleTheme": "החלפת ערכת נושא בהירה / כהה",
+    "rescan": "הרצת אשף ההתקנה מחדש",
+    "showHelp": "הצגת קיצורי מקלדת"
   },
   "settings": {
     "title": "הגדרות",
+    "searchPlaceholder": "חיפוש בהגדרות…",
     "statTotalItems": "סה\"כ פריטים",
     "statGames": "משחקים",
     "statPlaytime": "זמן משחק כולל",

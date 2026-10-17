@@ -1,7 +1,7 @@
 {
   "name": "playnest",
   "productName": "Playnest",
-  "version": "3.21.1",
+  "version": "3.22.0",
   "description": "Your entire game and software library, beautifully organized. The ultimate gaming command center.",
   "author": {
     "name": "Playnest Software",
@@ -87,7 +87,7 @@
       "perMachine": true,
       "runAfterFinish": true,
       "allowElevation": true,
-      "allowToChangeInstallationDirectory": true,
+      "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Playnest",

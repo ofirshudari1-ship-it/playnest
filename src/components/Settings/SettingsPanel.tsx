@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { LibraryItem, Settings, StaleItem, Theme, Language, UpdaterStatus } from '../../types';
 import { showToast } from '../../toast';
 import { timeAgo, formatPlaytime } from '../../helpers';
@@ -11,6 +11,8 @@ interface Props {
   onRescan: () => void;
   onLibraryChanged: () => void;
 }
+
+const TABS = ['general', 'library', 'system', 'updates', 'about'] as const;
 
 export default function SettingsPanel({ library, settings, onSettingsChanged, onRescan, onLibraryChanged }: Props) {
   const t = useTranslation();
@@ -198,9 +200,36 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
     }
   }
 
+  const [tab, setTab] = useState<(typeof TABS)[number]>('general');
+  const [query, setQuery] = useState('');
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Settings search: hide every field whose text doesn't contain the query.
+  useEffect(() => {
+    const q = query.trim().toLowerCase();
+    panelRef.current?.querySelectorAll<HTMLElement>('.settings-section .field').forEach((el) => {
+      el.style.display = !q || (el.textContent || '').toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+
   return (
-    <div className="settings-panel">
+    <div className="settings-panel" data-tab={query.trim() ? 'all' : tab} ref={panelRef}>
       <h1>{t('settings.title')}</h1>
+
+      <div className="settings-toolbar">
+        <div className="settings-tabs" role="tablist">
+          {TABS.map((id) => (
+            <button key={id} role="tab" aria-selected={!query.trim() && tab === id}
+              className={`settings-tab ${!query.trim() && tab === id ? 'active' : ''}`}
+              onClick={() => { setQuery(''); setTab(id); }}>
+              {t(`settings.section${id[0].toUpperCase()}${id.slice(1)}`)}
+            </button>
+          ))}
+        </div>
+        <input className="settings-search" type="search" value={query}
+          placeholder={t('settings.searchPlaceholder')}
+          onChange={(e) => setQuery(e.target.value)} />
+      </div>
 
       <div className="stat-tiles">
         <div className="stat-tile"><div className="n">{counts.total}</div><div className="l">{t('settings.statTotalItems')}</div></div>
@@ -209,7 +238,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
         <div className="stat-tile"><div className="n">{timeAgo(lastScan)}</div><div className="l">{t('settings.statLastScanned')}</div></div>
       </div>
 
-      <div className="settings-section">
+      <div className="settings-section" data-tab="general">
         <h2 className="settings-section-title">{t('settings.sectionGeneral')}</h2>
 
         <div className="field">
@@ -245,7 +274,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
         </div>
       </div>
 
-      <div className="settings-section">
+      <div className="settings-section" data-tab="library">
         <h2 className="settings-section-title">{t('settings.sectionLibrary')}</h2>
 
       <div className="field" id="settings-api-key-field">
@@ -356,7 +385,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
       </div>
       </div>
 
-      <div className="settings-section">
+      <div className="settings-section" data-tab="system">
         <h2 className="settings-section-title">{t('settings.sectionSystem')}</h2>
 
         <div className="field">
@@ -504,7 +533,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
         </div>
       </div>
 
-      <div className="settings-section">
+      <div className="settings-section" data-tab="updates">
         <h2 className="settings-section-title">{t('settings.sectionUpdates')}</h2>
 
         <div className="field" style={{ marginBottom: 0 }}>
@@ -544,7 +573,7 @@ export default function SettingsPanel({ library, settings, onSettingsChanged, on
         </div>
       </div>
 
-      <div className="settings-section">
+      <div className="settings-section" data-tab="about">
         <h2 className="settings-section-title">{t('settings.sectionAbout')}</h2>
 
         <div className="field">

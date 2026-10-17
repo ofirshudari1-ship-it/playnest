@@ -19,6 +19,20 @@ export default function GameCard({ item, onOpen, selectMode, isSelected }: Props
   // art"), so the grid shows a pulsing skeleton in its place instead of a
   // blank tile until the <img> actually decodes.
   const [coverLoaded, setCoverLoaded] = useState(false);
+  // Average colour of the cover, sampled once on a 1x1 canvas, drives the hover glow.
+  const [glow, setGlow] = useState<string | null>(null);
+
+  function sampleColor(img: HTMLImageElement) {
+    try {
+      const c = document.createElement('canvas');
+      c.width = 1; c.height = 1;
+      const ctx = c.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, 1, 1);
+      const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+      setGlow(`${r}, ${g}, ${b}`);
+    } catch { /* tainted canvas: keep default accent */ }
+  }
 
   async function quickLaunch(e: MouseEvent) {
     e.stopPropagation();
@@ -47,6 +61,7 @@ export default function GameCard({ item, onOpen, selectMode, isSelected }: Props
       className={`game-card ${selectMode ? 'select-mode' : ''} ${isSelected ? 'selected' : ''}`}
       onClick={() => onOpen(item)}
       onKeyDown={onKeyDown}
+      style={glow ? ({ '--card-glow': glow } as React.CSSProperties) : undefined}
       role="button"
       tabIndex={0}
       aria-pressed={selectMode ? !!isSelected : undefined}
@@ -70,7 +85,7 @@ export default function GameCard({ item, onOpen, selectMode, isSelected }: Props
             alt={item.name}
             loading="lazy"
             style={coverLoaded ? undefined : { display: 'none' }}
-            onLoad={() => setCoverLoaded(true)}
+            onLoad={(e) => { setCoverLoaded(true); sampleColor(e.currentTarget); }}
             onError={() => setCoverLoaded(true)}
           />
         </>

@@ -13,7 +13,7 @@ interface Props {
   onSkip: () => void;
 }
 
-type Step = 'welcome' | 'drives' | 'scanning' | 'done';
+type Step = 'welcome' | 'scanning' | 'done';
 
 export default function SetupWizard({ settings, onLanguageChange, onFinished, onSkip }: Props) {
   const t = useTranslation();
@@ -24,6 +24,8 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
   const [log, setLog] = useState<string[]>([]);
   const [foundCount, setFoundCount] = useState<number | null>(null);
   const [confirmSkip, setConfirmSkip] = useState(false);
+  const [showDrives, setShowDrives] = useState(false);
+  const stepNo = step === 'welcome' ? 1 : step === 'scanning' ? 2 : 3;
 
   useEffect(() => {
     window.playnest.getDrives().then((list) => {
@@ -89,6 +91,10 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
           </div>
         </div>
 
+        <div className="wizard-steps" aria-label={t('wizard.stepOf', { n: stepNo })}>
+          {[1, 2, 3].map((n) => <span key={n} className={`wizard-step-dot ${n <= stepNo ? 'on' : ''}`} />)}
+        </div>
+
         {step === 'welcome' && (
           <>
             <h1>{t('wizard.welcomeTitle')}</h1>
@@ -96,20 +102,8 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
             <div className="wizard-hero">
               <img src={wizardWelcomeImg} alt="" className="wizard-hero-img" />
             </div>
-            <div className="wizard-footer">
-              <button className="btn btn-ghost" onClick={() => setConfirmSkip(true)}>{t('common.skip')}</button>
-              <button className="btn btn-primary" onClick={() => setStep('drives')}>
-                {t('wizard.getStarted')}
-              </button>
-            </div>
-          </>
-        )}
-
-        {step === 'drives' && (
-          <>
-            <h1>{t('wizard.drivesTitle')}</h1>
-            <p className="sub">{t('wizard.drivesBody')}</p>
-
+            {showDrives && (
+              <>
             <div className="drive-list">
               {drives.map((drive) => (
                 <label key={drive.path} className={`drive-row ${selected.has(drive.path) ? 'selected' : ''}`}>
@@ -140,10 +134,17 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
               </label>
             </div>
 
+              </>
+            )}
+
             <div className="wizard-footer">
               <button className="btn btn-ghost" onClick={() => setConfirmSkip(true)}>{t('common.skip')}</button>
-              <button className="btn btn-secondary" onClick={() => setStep('welcome')}>{t('common.back')}</button>
-              <button className="btn btn-primary" onClick={startScan}>{t('wizard.startScan')}</button>
+              <button className="btn btn-secondary" onClick={() => setShowDrives((v) => !v)}>
+                {showDrives ? t('wizard.hideDrives') : t('wizard.chooseDrives')}
+              </button>
+              <button className="btn btn-primary" onClick={startScan}>
+                {t('wizard.scanAll')}
+              </button>
             </div>
           </>
         )}
@@ -152,6 +153,7 @@ export default function SetupWizard({ settings, onLanguageChange, onFinished, on
           <>
             <h1>{t('wizard.scanningTitle')}</h1>
             <p className="sub">{t('wizard.scanningBody')}</p>
+            <div className="wizard-live">{log.length > 1 ? log[log.length - 1] : ''}</div>
             <div className="progress-bar-track"><div className="progress-bar-fill" /></div>
             <div className="progress-log">
               {log.map((line, i) => <div key={i}>{line}</div>)}
