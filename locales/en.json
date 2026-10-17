@@ -154,6 +154,7 @@
     "goSettings": "Open settings",
     "toggleTheme": "Toggle light / dark theme",
     "rescan": "Run setup wizard again",
+    "focusMode": "Toggle Big Picture / focus mode",
     "showHelp": "Show keyboard shortcuts"
   },
   "settings": {

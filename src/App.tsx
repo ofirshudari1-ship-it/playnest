@@ -461,6 +461,7 @@ export default function App() {
     { id: 'a:sys', label: t('palette.goSystem'), run: () => setView('system-hub') },
     { id: 'a:set', label: t('palette.goSettings'), run: () => setView('settings') },
     { id: 'a:theme', label: t('palette.toggleTheme'), run: () => updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' }) },
+    { id: 'a:focus', label: t('palette.focusMode'), run: () => document.body.classList.toggle('focus-mode') },
     { id: 'a:help', label: t('palette.showHelp'), run: () => setShowHelp(true) },
     { id: 'a:wiz', label: t('palette.rescan'), run: () => setShowWizard(true) },
   ];

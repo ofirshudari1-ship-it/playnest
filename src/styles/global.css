@@ -2160,3 +2160,9 @@ input:checked + .slider:before {
 .settings-panel[data-tab="system"] .settings-section[data-tab="general"],
 .settings-panel[data-tab="updates"] .settings-section[data-tab="general"],
 .settings-panel[data-tab="about"] .settings-section[data-tab="general"] { display: none; }
+
+/* --- Big Picture / focus mode: larger cards, hidden sidebar chrome --- */
+body.focus-mode { font-size: 120%; }
+body.focus-mode .game-card:focus-visible { outline: 3px solid var(--accent, #7053e5); transform: scale(1.06); }
+body.focus-mode .sidebar { opacity: .35; transition: opacity .2s; }
+body.focus-mode .sidebar:hover, body.focus-mode .sidebar:focus-within { opacity: 1; }

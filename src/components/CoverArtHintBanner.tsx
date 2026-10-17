@@ -23,7 +23,8 @@ interface Props {
 export function shouldShowCoverArtBanner(settings: Settings, library: LibraryItem[]): boolean {
   if (settings.coverArtBannerDismissed) return false;
   if (settings.steamGridApiKey && settings.steamGridApiKey.trim()) return false;
-  return library.some((item) => !item.coverArt);
+  // Steam games get art for free; only non-Steam items still need a personal key.
+  return library.some((item) => !item.coverArt && !item.steamAppId);
 }
 
 export default function CoverArtHintBanner({ library, settings, onOpenSettings, onDismiss }: Props) {
